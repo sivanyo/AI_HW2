@@ -8,6 +8,7 @@ import random
 import time
 import utils
 
+
 class Game:
     def __init__(self, board, players_positions, max_fruit_score, max_fruit_time,
                 fruits_max_part_of_free_spaces = 0.2,

@@ -1,7 +1,7 @@
-"""Search Algos: MiniMax, AlphaBeta
+"""Search Algo: MiniMax, AlphaBeta
 """
 from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
-#TODO: you can import more modules, if needed
+# TODO: you can import more modules, if needed
 
 
 class SearchAlgos:
@@ -17,6 +17,7 @@ class SearchAlgos:
         self.utility = utility
         self.succ = succ
         self.perform_move = perform_move
+        self.goal = goal
 
     def search(self, state, depth, maximizing_player):
         pass

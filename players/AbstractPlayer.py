@@ -3,6 +3,7 @@ Your players classes must inherit from this.
 """
 import utils
 
+
 class AbstractPlayer:
     """Your player must inherit from this class.
     Your player class name must be 'Player', as in the given examples (SimplePlayer, LivePlayer).
@@ -10,14 +11,15 @@ class AbstractPlayer:
     from players.AbstractPlayer import AbstractPlayer
     class Player(AbstractPlayer):
     """
+
     def __init__(self, game_time, penalty_score):
         """
         Player initialization.
         """
         self.game_time = game_time
         self.penalty_score = penalty_score
-        self.directions = utils.get_directions() #[(1, 0), (0, 1), (-1, 0), (0, -1)]
-    
+        self.directions = utils.get_directions()
+        # [(1, 0), (0, 1), (-1, 0), (0, -1)]
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -28,7 +30,6 @@ class AbstractPlayer:
         No output is expected.
         """
         raise NotImplementedError
-    
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -39,7 +40,6 @@ class AbstractPlayer:
         """
         raise NotImplementedError
 
-
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
         input:
@@ -47,7 +47,6 @@ class AbstractPlayer:
         No output is expected
         """
         raise NotImplementedError
-
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
