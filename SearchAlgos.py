@@ -32,8 +32,28 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        if depth is 0:
+            return self.utility(state, maximizing_player), None
+        if maximizing_player:
+            # max node
+            best_val = -float('inf)')
+            best_move = None
+            for d in self.succ(state):
+                val = self.search(d, depth-1, not maximizing_player)
+                if val[1] > best_val:
+                    best_val = val[1]
+                    best_move = val[0]
+            return best_val, best_move
+        else:
+            # min node
+            worst_val = float('inf')
+            worst_move = None
+            for d in self.succ(state):
+                val = self.search(d, depth-1, not maximizing_player)
+                if val[1] < worst_val:
+                    worst_val = val[1]
+                    worst_move = val[0]
+            return worst_val, worst_move
 
 
 class AlphaBeta(SearchAlgos):

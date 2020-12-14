@@ -2,6 +2,7 @@
 MiniMax Player
 """
 from players.AbstractPlayer import AbstractPlayer
+import SearchAlgos
 
 
 # TODO: you can import more modules, if needed
@@ -20,6 +21,7 @@ class Player(AbstractPlayer):
         self.num_of_left = 0
         self.num_of_left_rival = 0
         self.min_dist_to_fruit = 0
+        self.fruits_on_board_dict = {}
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -32,14 +34,21 @@ class Player(AbstractPlayer):
         """
         self.board = board
         # need to set my pos, the rival pos, all the grey area and all fruits
+        available = 0
         for r, row in board:
             for c, num in row:
+                if num is not -1:
+                    available += 1
                 if num == 1:
                     self.pos = (r, c)
                     # this my pos
-                if num == 2:
+                elif num == 2:
                     self.rival_pos = (r, c)
                     # this is the rival starting pos
+                elif num > 2:
+                    # this is fruit, need to add to dict
+                    self.fruits_on_board_dict[[r, c]] = num
+        # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -48,6 +57,8 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
+        minimax_algo = SearchAlgos.MiniMax(self.utility(), self.succ(), self.perform_move(), self.goal())
+        move = minimax_algo.search()
         # TODO: erase the following line and implement this function.
 
         raise NotImplementedError
@@ -58,8 +69,9 @@ class Player(AbstractPlayer):
             - pos: tuple, the new position of the rival.
         No output is expected
         """
-        # TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        # mark the rival move as green
+        self.board[pos[0]][pos[1]] = -1
+        # maybe should update info in self - ?
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -92,7 +104,11 @@ class Player(AbstractPlayer):
         return num_steps_available + (1 / self.min_dist_to_fruit) + self.num_of_left + (1 / self.num_of_left_rival)
 
     def utility(self):
-        pass
+        if self.num_of_left is 0 and self.num_of_left_rival is not 0:
+            # im stuck
+            return self.self_score - self.penalty_score - self.rival_score
+        else:
+            return self.self_score - self.rival_score + self.penalty_score
 
     def succ(self):
         pass
