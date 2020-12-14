@@ -4,15 +4,9 @@ MiniMax Player
 from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
 import copy
+import utils
 
 
-class State:
-    def __init__(self, board, my_pos, rival_pos, scores):
-        self.board = board
-        self.my_pos = my_pos
-        self.rival_pos = rival_pos
-        # scores[0] = my score, scores[1] = rival score
-        self.scores = scores
 # TODO: you can import more modules, if needed
 
 
@@ -66,9 +60,11 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         minimax_algo = SearchAlgos.MiniMax(self.utility(), self.succ(), self.perform_move(), self.goal())
-        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score)
-        move = minimax_algo.search(state, 100, True)
-        return move[1]
+        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score)
+        best_move = minimax_algo.search(state, 100, True)
+        if best_move[1] is None:
+            exit(0)
+        return best_move[1]
 
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
@@ -97,6 +93,17 @@ class Player(AbstractPlayer):
     ########## helper functions for MiniMax algorithm ##########
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
+
+class State:
+    def __init__(self, board, my_pos, rival_pos, scores, penalty_score):
+        self.board = board
+        self.my_pos = my_pos
+        self.rival_pos = rival_pos
+        # scores[0] = my score, scores[1] = rival score
+        self.scores = scores
+        self.directions = utils.get_directions()
+        self.penalty_score = penalty_score
+
     def heuristic(self):
         # count num of available steps
         num_steps_available = 0
@@ -118,31 +125,55 @@ class Player(AbstractPlayer):
         else:
             return self.self_score - self.rival_score + self.penalty_score
 
-    def succ(self, state): # TODO
+    def succ(self, maximizing_player):
         succ = []
         for op_move in self.directions:
-            i = self.pos[0] + op_move[0]
-            j = self.pos[1] + op_move[1]
+            if maximizing_player:
+                i = self.my_pos[0] + op_move[0]
+                j = self.my_pos[1] + op_move[1]
+            else:
+                i = self.rival_pos[0] + op_move[0]
+                j = self.rival_pos[1] + op_move[1]
             if 0 <= i < len(self.board) and 0 <= j < len(self.state.board[0]) and \
                     (self.state.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
+
+        if len(succ) == 0:
+            self.scores[not maximizing_player] -= self.penalty_score
+
         return succ
 
-    def perform_move(self):
-        new_loc = self.my_move
-        if self.board[new_loc[0]][new_loc[1]] > 2:
-            # this is a fruit
-            self.self_score += self.board[new_loc[0]][new_loc[1]]
-            del self.fruits_on_board_dict[[new_loc[0], new_loc[1]]]
-        # mark this as grey
-        self.board[new_loc[0]][new_loc[1]] = -1
-
-    def goal(self):
-        # only on leaf
-        if self.num_of_left is 0 and self.num_of_left_rival is not 0:
-            # im stack
-            return self.self_score - self.penalty_score - self.rival_score > 0
-            # im the winner
+    def perform_move(self, maximizing_player, move):
+        if maximizing_player:
+            self.board[self.my_pos[0]][self.my_pos[1]] = -1
+            new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
+            self.my_pos = new_pos
         else:
-            # the rival stack
-            return self.self_score - self.rival_score + self.penalty_score > 0
+            self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
+            new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
+            self.rival_pos = new_pos
+
+        if self.board[move[0]][move[1]] > 2:
+            self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
+
+        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
+
+        return self.scores[0] - self.scores[1]
+
+    def goal(self, moves):
+        return self.scores[0] - self.scores[1]
+
+        # # only on leaf
+        # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
+        #     # im stack
+        #     return self.self_score - self.penalty_score - self.rival_score > 0
+        #     # im the winner
+        # else:
+        #     # the rival stack
+        #     return self.self_score - self.rival_score + self.penalty_score > 0
+
+
+    # def get_min_max(self, maximizing_player):
+    #     if maximizing_player:
+    #         return self.scores[0] - self.scores[1] - self.penalty_score
+    #     return self.scores[0] - self.scores[1] + self.penalty_score
