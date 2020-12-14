@@ -36,16 +36,16 @@ class MiniMax(SearchAlgos):
             return 0  # TODO!!!!
             #return self.utility(state, maximizing_player), None
 
-        succ_moves = self.succ(state, maximizing_player)
+        succ_moves = self.succ(maximizing_player)
         if len(succ_moves) == 0:
-            return self.goal(state), None
+            return self.goal(), None
 
         if maximizing_player:
             best_val = float('-inf')
             best_move = None
             for move in succ_moves:
                 state_copy = copy.deepcopy(state)
-                self.perform_move(state_copy)
+                self.perform_move(state_copy, move)
                 val = self.search(state_copy, depth-1, not maximizing_player)
                 if val[0] > best_val:
                     best_val = val[0]
@@ -56,7 +56,7 @@ class MiniMax(SearchAlgos):
             worst_move = None
             for move in succ_moves:
                 state_copy = copy.deepcopy(state)
-                self.perform_move(state_copy)
+                self.perform_move(state_copy, move)
                 val = self.search(state_copy, depth-1, not maximizing_player)
                 if val[0] < worst_val:
                     worst_val = val[0]

@@ -17,7 +17,6 @@ class Player(AbstractPlayer):
         self.board = None  # SH
         self.rival_pos = None  # SH
         self.pos = None  # SH
-        self.fruit = None  # SH
         self.scores = (0, 0)
         self.num_of_left = 0
         self.num_of_left_rival = 0
@@ -37,8 +36,8 @@ class Player(AbstractPlayer):
         self.board = board
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
-        for r, row in board:
-            for c, num in row:
+        for r, row in enumerate(board):
+            for c, num in enumerate(row):
                 if num is not -1:
                     available += 1
                 if num == 1:
@@ -49,7 +48,7 @@ class Player(AbstractPlayer):
                     # this is the rival starting pos
                 elif num > 2:
                     # this is fruit, need to add to dict
-                    self.fruits_on_board_dict[[r, c]] = num
+                    self.fruits_on_board_dict[r, c] = num
         # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
@@ -59,8 +58,8 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        minimax_algo = SearchAlgos.MiniMax(self.utility(), self.succ(), self.perform_move(), self.goal())
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score)
+        minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, 100, True)
         if best_move[1] is None:
             exit(0)
@@ -84,8 +83,9 @@ class Player(AbstractPlayer):
                                     'value' is the value of this fruit.
         No output is expected.
         """
+        self.fruits_on_board_dict = fruits_on_board_dict  # TODO can we copt dict like this?!?!
         # TODO: erase the following line and implement this function. In case you choose not to use it, use 'pass' instead of the following line.
-        raise NotImplementedError
+        #raise NotImplementedError
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
@@ -134,8 +134,8 @@ class State:
             else:
                 i = self.rival_pos[0] + op_move[0]
                 j = self.rival_pos[1] + op_move[1]
-            if 0 <= i < len(self.board) and 0 <= j < len(self.state.board[0]) and \
-                    (self.state.board[i][j] not in [-1, 1, 2]):
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and \
+                    (self.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
 
         if len(succ) == 0:
@@ -160,7 +160,7 @@ class State:
 
         return self.scores[0] - self.scores[1]
 
-    def goal(self, moves):
+    def goal(self):
         return self.scores[0] - self.scores[1]
 
         # # only on leaf
