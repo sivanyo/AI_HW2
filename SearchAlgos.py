@@ -43,24 +43,28 @@ class MiniMax(SearchAlgos):
         if maximizing_player:
             best_val = float('-inf')
             best_move = None
+            print("MAX. lets choose between: ", succ_moves)
             for move in succ_moves:
                 state_copy = copy.deepcopy(state)
                 self.perform_move(state_copy, move)
-                val = self.search(state_copy, depth-1, not maximizing_player)
+                val = self.search(state_copy, depth-1, False)
                 if val[0] > best_val:
                     best_val = val[0]
                     best_move = move
+                print("MAX. i chose in :", best_move)
                 return best_val, best_move
         else:
             worst_val = float('inf')
             worst_move = None
+            print("MIN. lets choose between: ", succ_moves)
             for move in succ_moves:
                 state_copy = copy.deepcopy(state)
                 self.perform_move(state_copy, move)
-                val = self.search(state_copy, depth-1, not maximizing_player)
+                val = self.search(state_copy, depth-1, True)
                 if val[0] < worst_val:
                     worst_val = val[0]
                     worst_move = move
+                print("MIN. i chose in :", worst_move)
                 return worst_val, worst_move
 
         #

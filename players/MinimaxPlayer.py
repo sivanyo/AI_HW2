@@ -58,11 +58,13 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
+        print("start computing optimal move")
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, 100, True)
         if best_move[1] is None:
             exit(0)
+        print("minmax moves to: ", best_move)
         return best_move[1]
 
     def set_rival_move(self, pos):
