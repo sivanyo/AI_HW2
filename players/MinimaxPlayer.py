@@ -118,7 +118,7 @@ class Player(AbstractPlayer):
         else:
             return self.self_score - self.rival_score + self.penalty_score
 
-    def succ(self, state):
+    def succ(self, state): # TODO
         succ = []
         for op_move in self.directions:
             i = self.pos[0] + op_move[0]
