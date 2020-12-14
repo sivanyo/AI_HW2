@@ -3,8 +3,16 @@ MiniMax Player
 """
 from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
+import copy
 
 
+class State:
+    def __init__(self, board, my_pos, rival_pos, scores):
+        self.board = board
+        self.my_pos = my_pos
+        self.rival_pos = rival_pos
+        # scores[0] = my score, scores[1] = rival score
+        self.scores = scores
 # TODO: you can import more modules, if needed
 
 
@@ -16,12 +24,12 @@ class Player(AbstractPlayer):
         self.rival_pos = None  # SH
         self.pos = None  # SH
         self.fruit = None  # SH
-        self.self_score = 0
-        self.rival_score = 0
+        self.scores = (0, 0)
         self.num_of_left = 0
         self.num_of_left_rival = 0
         self.min_dist_to_fruit = 0
         self.fruits_on_board_dict = {}
+        self.my_move = None
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -58,10 +66,9 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         minimax_algo = SearchAlgos.MiniMax(self.utility(), self.succ(), self.perform_move(), self.goal())
-        move = minimax_algo.search()
-        # TODO: erase the following line and implement this function.
-
-        raise NotImplementedError
+        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score)
+        move = minimax_algo.search(state, 100, True)
+        return move[1]
 
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
@@ -104,18 +111,38 @@ class Player(AbstractPlayer):
         return num_steps_available + (1 / self.min_dist_to_fruit) + self.num_of_left + (1 / self.num_of_left_rival)
 
     def utility(self):
+        # need to get state and min or max node
         if self.num_of_left is 0 and self.num_of_left_rival is not 0:
             # im stuck
             return self.self_score - self.penalty_score - self.rival_score
         else:
             return self.self_score - self.rival_score + self.penalty_score
 
-    def succ(self):
-        pass
+    def succ(self, state):
+        succ = []
+        for op_move in self.directions:
+            i = self.pos[0] + op_move[0]
+            j = self.pos[1] + op_move[1]
+            if 0 <= i < len(self.board) and 0 <= j < len(self.state.board[0]) and \
+                    (self.state.board[i][j] not in [-1, 1, 2]):
+                succ.append(op_move)
+        return succ
 
     def perform_move(self):
-        pass
+        new_loc = self.my_move
+        if self.board[new_loc[0]][new_loc[1]] > 2:
+            # this is a fruit
+            self.self_score += self.board[new_loc[0]][new_loc[1]]
+            del self.fruits_on_board_dict[[new_loc[0], new_loc[1]]]
+        # mark this as grey
+        self.board[new_loc[0]][new_loc[1]] = -1
 
     def goal(self):
-        pass
-
+        # only on leaf
+        if self.num_of_left is 0 and self.num_of_left_rival is not 0:
+            # im stack
+            return self.self_score - self.penalty_score - self.rival_score > 0
+            # im the winner
+        else:
+            # the rival stack
+            return self.self_score - self.rival_score + self.penalty_score > 0

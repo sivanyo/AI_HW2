@@ -36,13 +36,14 @@ class MiniMax(SearchAlgos):
             return self.utility(state, maximizing_player), None
         if maximizing_player:
             # max node
-            best_val = -float('inf)')
+            best_val = -float('inf')
             best_move = None
             for d in self.succ(state):
                 val = self.search(d, depth-1, not maximizing_player)
-                if val[1] > best_val:
-                    best_val = val[1]
-                    best_move = val[0]
+                if val[0] > best_val:
+                    best_val = val[0]
+                    best_move = val[1]
+            self.perform_move(best_move)
             return best_val, best_move
         else:
             # min node
@@ -50,9 +51,10 @@ class MiniMax(SearchAlgos):
             worst_move = None
             for d in self.succ(state):
                 val = self.search(d, depth-1, not maximizing_player)
-                if val[1] < worst_val:
-                    worst_val = val[1]
-                    worst_move = val[0]
+                if val[0] < worst_val:
+                    worst_val = val[0]
+                    worst_move = val[1]
+            self.perform_move(worst_move)
             return worst_val, worst_move
 
 

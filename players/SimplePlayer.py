@@ -7,14 +7,12 @@ class Player(AbstractPlayer):
         AbstractPlayer.__init__(self, game_time, penalty_score)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
         self.board = None             # and add two more fields to Player
         self.pos = None
-        
 
     def set_game_params(self, board):
         self.board = board
         pos = np.where(board == 1)
         # convert pos to tuple of ints
         self.pos = tuple(ax[0] for ax in pos)
-
 
     def state_score(self, board, pos):
         num_steps_available = 0
@@ -30,7 +28,6 @@ class Player(AbstractPlayer):
             return -1
         else:
             return 4 - num_steps_available
-
 
     @staticmethod
     def count_ones(board):
@@ -62,7 +59,6 @@ class Player(AbstractPlayer):
                 self.board[new_pos] = 0
                 assert self.count_ones(self.board) == 0
 
-
         if best_move is None:
             exit(0)
 
@@ -73,10 +69,8 @@ class Player(AbstractPlayer):
         self.pos = best_new_pos
         return best_move
 
-
     def set_rival_move(self, pos):
         self.board[pos] = -1
-
 
     def update_fruits(self, fruits_on_board_dict):
         pass
