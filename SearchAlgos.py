@@ -35,8 +35,8 @@ class MiniMax(SearchAlgos):
         if depth is 0:
             return 0  # TODO!!!!
             #return self.utility(state, maximizing_player), None
-
-        succ_moves = self.succ(maximizing_player)
+        # i add state param here
+        succ_moves = self.succ(state, maximizing_player)
         if len(succ_moves) == 0:
             return self.goal(), None
 
