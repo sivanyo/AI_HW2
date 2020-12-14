@@ -32,12 +32,15 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
+        print("start search func!")
         if depth is 0:
-            return 0  # TODO!!!!
+            return self.goal(), None  # TODO!!!!
             #return self.utility(state, maximizing_player), None
         # i add state param here
-        succ_moves = self.succ(state, maximizing_player)
+        succ_moves = self.succ(maximizing_player)
+
         if len(succ_moves) == 0:
+            print("reach leaf, return: ", self.goal())
             return self.goal(), None
 
         if maximizing_player:
@@ -45,27 +48,38 @@ class MiniMax(SearchAlgos):
             best_move = None
             print("MAX. lets choose between: ", succ_moves)
             for move in succ_moves:
+                print("check for: ", move)
                 state_copy = copy.deepcopy(state)
-                self.perform_move(state_copy, move)
-                val = self.search(state_copy, depth-1, False)
+                print("lets call preform with: ", move)
+                state_copy.perform_move(state_copy, move)
+                state.print_state_t()
+                state_copy.print_state_t()
+                minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
+                print("BP2")
+                val = minimax_algo.search(state_copy, depth - 1, False)  # 4
+                print("BP3")
+
                 if val[0] > best_val:
                     best_val = val[0]
                     best_move = move
-                print("MAX. i chose in :", best_move)
-                return best_val, best_move
+            print("MAX. i chose in :", best_move)
+            return best_val, best_move
         else:
             worst_val = float('inf')
             worst_move = None
-            print("MIN. lets choose between: ", succ_moves)
+            #  print("MIN. lets choose between: ", succ_moves)
             for move in succ_moves:
+                #  print("check for: ", move)
                 state_copy = copy.deepcopy(state)
                 self.perform_move(state_copy, move)
-                val = self.search(state_copy, depth-1, True)
+                minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)  #4
+                val = minimax_algo.search(state_copy, depth-1, True) # 4
+                #val = self.search(state_copy, depth-1, True)
                 if val[0] < worst_val:
                     worst_val = val[0]
                     worst_move = move
-                print("MIN. i chose in :", worst_move)
-                return worst_val, worst_move
+            #  print("MIN. i chose in :", worst_move)
+            return worst_val, worst_move
 
         #
         # if maximizing_player:

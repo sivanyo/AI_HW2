@@ -61,7 +61,7 @@ class Player(AbstractPlayer):
         print("start computing optimal move")
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = minimax_algo.search(state, 100, True)
+        best_move = minimax_algo.search(state, 20, True)
         if best_move[1] is None:
             exit(0)
         print("minmax moves to: ", best_move)
@@ -136,9 +136,11 @@ class State:
             else:
                 i = self.rival_pos[0] + op_move[0]
                 j = self.rival_pos[1] + op_move[1]
-            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and \
-                    (self.board[i][j] not in [-1, 1, 2]):
+
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
+                if maximizing_player:
+                    print("--------just added2: (", i, ", ", j, ").     by ", op_move)
 
         if len(succ) == 0:
             self.scores[not maximizing_player] -= self.penalty_score
@@ -147,9 +149,11 @@ class State:
 
     def perform_move(self, maximizing_player, move):
         if maximizing_player:
+            print("this is my old pos: ", self.my_pos)
             self.board[self.my_pos[0]][self.my_pos[1]] = -1
             new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
             self.my_pos = new_pos
+            print("this is my new pos: ", self.my_pos)
         else:
             self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
             new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
@@ -179,3 +183,8 @@ class State:
     #     if maximizing_player:
     #         return self.scores[0] - self.scores[1] - self.penalty_score
     #     return self.scores[0] - self.scores[1] + self.penalty_score
+
+
+    def print_state_t(self):
+        print("====print test==== my pos is: ", self.my_pos)
+
