@@ -32,11 +32,10 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #print("start search func!")
         if depth is 0:
-            return self.goal(), None  # TODO!!!!
+            return self.goal(), None  # TODO!!!! need to return heuristaka!
             #return self.utility(state, maximizing_player), None
-        # i add state param here
+
         succ_moves = self.succ(maximizing_player)
 
         if len(succ_moves) == 0:

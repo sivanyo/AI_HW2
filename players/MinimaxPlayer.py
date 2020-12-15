@@ -65,6 +65,13 @@ class Player(AbstractPlayer):
         if best_move[1] is None:
             exit(0)
         print("minmax moves to: ", best_move)
+        self.board[self.pos[0]][self.pos[1]] = -1
+        tmp1 = best_move[1]
+
+        self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
+        # self.pos[0] += tmp1[0]
+        # self.pos[1] += tmp1[1]
+        self.board[self.pos[0]][self.pos[1]] = 1
         return best_move[1]
 
     def set_rival_move(self, pos):
@@ -74,7 +81,9 @@ class Player(AbstractPlayer):
         No output is expected
         """
         # mark the rival move as green
-        self.board[pos[0]][pos[1]] = -1
+        self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
+        self.board[pos[0]][pos[1]] = 2
+        self.rival_pos = pos
         # maybe should update info in self - ?
 
     def update_fruits(self, fruits_on_board_dict):
@@ -153,11 +162,10 @@ class State:
             new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
             self.my_pos = new_pos
             #print("this is my new pos: ", self.my_pos)
-
-            if not (0 <= self.my_pos[0] < len(self.board) and 0 <= self.my_pos[1] < len(self.board[0]) and \
-                    (self.board[new_pos[0]][new_pos[1]] not in [-1, 1, 2])):
-                    assert (1 == 0)
-
+            #
+            # if not (0 <= self.my_pos[0] < len(self.board) and 0 <= self.my_pos[1] < len(self.board[0]) and \
+            #         (self.board[new_pos[0]][new_pos[1]] not in [-1, 1, 2])):
+            #         assert (1 == 0)
         else:
             self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
             new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
