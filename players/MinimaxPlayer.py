@@ -23,6 +23,7 @@ class Player(AbstractPlayer):
         self.min_dist_to_fruit = 0
         self.fruits_on_board_dict = {}
         self.my_move = None
+        self.turns_till_fruit_gone = 0
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -34,10 +35,12 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         self.board = board
+        row_len = len(board)
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
         for r, row in enumerate(board):
             for c, num in enumerate(row):
+                col_len = len(row)
                 if num is not -1:
                     available += 1
                 if num == 1:
@@ -49,6 +52,7 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
+        self.turns_till_fruit_gone = min(row_len, col_len)
         # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
@@ -59,7 +63,9 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing optimal move")
-        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score)
+        self.turns_till_fruit_gone -= 1
+        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
+                      self.turns_till_fruit_gone)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, 20, True)
         if best_move[1] is None:
@@ -72,6 +78,8 @@ class Player(AbstractPlayer):
         # self.pos[0] += tmp1[0]
         # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
+
+
         return best_move[1]
 
     def set_rival_move(self, pos):
@@ -84,6 +92,7 @@ class Player(AbstractPlayer):
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
+        self.turns_till_fruit_gone -= 1
         # maybe should update info in self - ?
 
     def update_fruits(self, fruits_on_board_dict):
@@ -106,7 +115,7 @@ class Player(AbstractPlayer):
 
 
 class State:
-    def __init__(self, board, my_pos, rival_pos, scores, penalty_score):
+    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone):
         self.board = board
         self.my_pos = my_pos
         self.rival_pos = rival_pos
@@ -114,6 +123,7 @@ class State:
         self.scores = scores
         self.directions = utils.get_directions()
         self.penalty_score = penalty_score
+        self.turns_till_fruit_gone = turns_till_fruit_gone
 
     def heuristic(self):
         # count num of available steps
@@ -153,6 +163,13 @@ class State:
         if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
             self.scores[not maximizing_player] -= self.penalty_score
 
+        self.turns_till_fruit_gone -= 1
+        if self.turns_till_fruit_gone == 0:
+            for r, row in enumerate(self.board):
+                for c, num in enumerate(row):
+                    if self.board[r][c] > 2 :
+                        # this is fruit
+                        self.board[r][c] = 0
         return succ
 
     def perform_move(self, maximizing_player, move):
@@ -171,9 +188,9 @@ class State:
             new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
             self.rival_pos = new_pos
 
-        if self.board[move[0]][move[1]] > 2:
+        if self.board[new_pos[0]][new_pos[1]] > 2:
             self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
-
+        print(self.scores)
         self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
 
         # return self.scores[0] - self.scores[1]

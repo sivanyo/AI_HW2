@@ -4,6 +4,7 @@ from utils import ALPHA_VALUE_INIT, BETA_VALUE_INIT
 # TODO: you can import more modules, if needed
 import copy
 
+
 class SearchAlgos:
     def __init__(self, utility, succ, perform_move, goal):
         """The constructor for all the search algos.
@@ -34,12 +35,12 @@ class MiniMax(SearchAlgos):
         """
         if depth is 0:
             return self.goal(), None  # TODO!!!! need to return heuristaka!
-            #return self.utility(state, maximizing_player), None
+            # return self.utility(state, maximizing_player), None
 
         succ_moves = self.succ(maximizing_player)
 
         if len(succ_moves) == 0:
-            print("reach leaf, return: ", self.goal())
+            # print("reach leaf, return: ", self.goal())
             return self.goal(), None
 
         if maximizing_player:
@@ -49,7 +50,7 @@ class MiniMax(SearchAlgos):
                 state_copy = copy.deepcopy(state)
                 state_copy.perform_move(True, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
-                val = minimax_algo.search(state_copy, depth-1, False)
+                val = minimax_algo.search(state_copy, depth - 1, False)
                 if val[0] > best_val:
                     best_val = val[0]
                     best_move = move
@@ -62,7 +63,7 @@ class MiniMax(SearchAlgos):
                 state_copy = copy.deepcopy(state)
                 state_copy.perform_move(False, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
-                val = minimax_algo.search(state_copy, depth-1, True)
+                val = minimax_algo.search(state_copy, depth - 1, True)
                 if val[0] < worst_val:
                     worst_val = val[0]
                     worst_move = move
@@ -104,5 +105,5 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #TODO: erase the following line and implement this function.
+        # TODO: erase the following line and implement this function.
         raise NotImplementedError
