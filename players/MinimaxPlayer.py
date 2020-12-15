@@ -150,7 +150,7 @@ class State:
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
 
-        if len(succ) == 0:
+        if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
             self.scores[not maximizing_player] -= self.penalty_score
 
         return succ
@@ -180,6 +180,18 @@ class State:
 
     def goal(self):
         return self.scores[0] - self.scores[1]
+
+    def have_valid_move_check(self, maximizing_player):
+        for op_move in self.directions:
+            if maximizing_player:
+                i = self.my_pos[0] + op_move[0]
+                j = self.my_pos[1] + op_move[1]
+            else:
+                i = self.rival_pos[0] + op_move[0]
+                j = self.rival_pos[1] + op_move[1]
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
+                return True
+        return False
 
         # # only on leaf
         # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
