@@ -128,6 +128,7 @@ class State:
             return self.self_score - self.rival_score + self.penalty_score
 
     def succ(self, maximizing_player):
+        #print("start succ func")
         succ = []
         for op_move in self.directions:
             if maximizing_player:
@@ -139,8 +140,6 @@ class State:
 
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
-                if maximizing_player:
-                    print("--------just added2: (", i, ", ", j, ").     by ", op_move)
 
         if len(succ) == 0:
             self.scores[not maximizing_player] -= self.penalty_score
@@ -149,11 +148,16 @@ class State:
 
     def perform_move(self, maximizing_player, move):
         if maximizing_player:
-            print("this is my old pos: ", self.my_pos)
+            #print("this is my old pos: ", self.my_pos)
             self.board[self.my_pos[0]][self.my_pos[1]] = -1
             new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
             self.my_pos = new_pos
-            print("this is my new pos: ", self.my_pos)
+            #print("this is my new pos: ", self.my_pos)
+
+            if not (0 <= self.my_pos[0] < len(self.board) and 0 <= self.my_pos[1] < len(self.board[0]) and \
+                    (self.board[new_pos[0]][new_pos[1]] not in [-1, 1, 2])):
+                    assert (1 == 0)
+
         else:
             self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
             new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
@@ -164,7 +168,7 @@ class State:
 
         self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
 
-        return self.scores[0] - self.scores[1]
+        # return self.scores[0] - self.scores[1]
 
     def goal(self):
         return self.scores[0] - self.scores[1]
@@ -185,6 +189,6 @@ class State:
     #     return self.scores[0] - self.scores[1] + self.penalty_score
 
 
-    def print_state_t(self):
-        print("====print test==== my pos is: ", self.my_pos)
+    # def print_state_t(self):
+    #     print("====print test==== my pos is: ", self.my_pos)
 
