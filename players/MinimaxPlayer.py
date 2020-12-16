@@ -52,7 +52,9 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
-        self.turns_till_fruit_gone = min(row_len, col_len)
+        self.turns_till_fruit_gone = 15
+        # self.turns_till_fruit_gone = min(row_len, col_len)  # TODO! right now the segel files gives max_fruit_time=15,
+        #  but originally they told it is like this line ^
         # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
@@ -62,15 +64,16 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing optimal move")
+        print("start computing minimax move")
         self.turns_till_fruit_gone -= 1
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone)
+                      self.turns_till_fruit_gone+1)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, 20, True)
         if best_move[1] is None:
             exit(0)
-        print("minmax moves to: ", best_move)
+        print("minmax choose the move: ", best_move)
+        print("assume score will be: ", players_score, "+= ", best_move[0])
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
 
@@ -78,7 +81,6 @@ class Player(AbstractPlayer):
         # self.pos[0] += tmp1[0]
         # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
-
 
         return best_move[1]
 
@@ -170,6 +172,7 @@ class State:
                     if self.board[r][c] > 2 :
                         # this is fruit
                         self.board[r][c] = 0
+        # print(self.scores)
         return succ
 
     def perform_move(self, maximizing_player, move):
@@ -190,7 +193,6 @@ class State:
 
         if self.board[new_pos[0]][new_pos[1]] > 2:
             self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
-        print(self.scores)
         self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
 
         # return self.scores[0] - self.scores[1]
