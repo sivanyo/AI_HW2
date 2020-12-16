@@ -71,6 +71,7 @@ class Player(AbstractPlayer):
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, 20, True)
         if best_move[1] is None:
+            print("im out")
             exit(0)
         print("minmax choose the move: ", best_move)
         print("assume score will be: ", players_score, "+= ", best_move[0])
@@ -116,6 +117,10 @@ class Player(AbstractPlayer):
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
 
+def md(loc1, loc2):
+    return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
+
+
 class State:
     def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone):
         self.board = board
@@ -126,30 +131,46 @@ class State:
         self.directions = utils.get_directions()
         self.penalty_score = penalty_score
         self.turns_till_fruit_gone = turns_till_fruit_gone
+        self.last_move = None
 
-    def heuristic(self):
-        # count num of available steps
-        num_steps_available = 0
-        for d in self.directions:
-            i = self.pos[0] + d[0]
-            j = self.pos[1] + d[1]
-            # check legal move
-            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and \
-                    (self.board[i][j] not in [-1, 1, 2]):
-                num_steps_available += 1
-
-        return num_steps_available + (1 / self.min_dist_to_fruit) + self.num_of_left + (1 / self.num_of_left_rival)
-
-    def utility(self):
-        # need to get state and min or max node
-        if self.num_of_left is 0 and self.num_of_left_rival is not 0:
-            # im stuck
-            return self.self_score - self.penalty_score - self.rival_score
+    def heuristic(self, maximizing_player):
+        val = 0
+        if maximizing_player:
+            val += self.scores[0] > self.scores[1]
+            val += self.number_pf_legal_moves(self.my_pos)
+            val += 1/(self.min_dist_to_fruit(self.my_pos))
+            val += self.min_dist_to_fruit(self.rival_pos)
         else:
-            return self.self_score - self.rival_score + self.penalty_score
+            val += self.scores[1] > self.scores[0]
+            val += self.number_pf_legal_moves(self.rival_pos)
+            val += 1 / (self.min_dist_to_fruit(self.rival_pos))
+            val += self.min_dist_to_fruit(self.my_pos)
+
+        return val
+
+    def utility(self, maximizing_player):
+        # we need to give back val
+        # there might be two reasons -
+        # 1) this is a leaf - means the game is over ! need to calculate who wins
+        # 2) depth == 0 -> need to return the heuristic val of this node
+        if self.goal(maximizing_player):
+            return self.scores[0] - self.scores[1]
+        #     # we have reached a leaf
+        #     if self.scores[0] > self.scores[1]:
+        #         # im the winner, i want this leaf to be chosen
+        #         return float('inf')
+        #     elif self.scores[0] == self.scores[1]:
+        #         # this is a tie
+        #         return 0
+        #     else:
+        #         # i lost, dont want this leaf to be chosen
+        #         return float('-inf')
+        else:
+            # this is not a leaf, need to evaluate the heuristic val of this node
+            return self.heuristic(maximizing_player)
 
     def succ(self, maximizing_player):
-        #print("start succ func")
+        # print("start succ func")
         succ = []
         for op_move in self.directions:
             if maximizing_player:
@@ -162,14 +183,14 @@ class State:
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 succ.append(op_move)
 
-        if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
-            self.scores[not maximizing_player] -= self.penalty_score
+        # if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
+        #     self.scores[not maximizing_player] -= self.penalty_score
 
         self.turns_till_fruit_gone -= 1
         if self.turns_till_fruit_gone == 0:
             for r, row in enumerate(self.board):
                 for c, num in enumerate(row):
-                    if self.board[r][c] > 2 :
+                    if self.board[r][c] > 2:
                         # this is fruit
                         self.board[r][c] = 0
         # print(self.scores)
@@ -177,28 +198,33 @@ class State:
 
     def perform_move(self, maximizing_player, move):
         if maximizing_player:
-            #print("this is my old pos: ", self.my_pos)
+            # print("this is my old pos: ", self.my_pos)
             self.board[self.my_pos[0]][self.my_pos[1]] = -1
-            new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
+            new_pos = (self.my_pos[0] + move[0], self.my_pos[1] + move[1])
             self.my_pos = new_pos
-            #print("this is my new pos: ", self.my_pos)
+            # print("this is my new pos: ", self.my_pos)
             #
             # if not (0 <= self.my_pos[0] < len(self.board) and 0 <= self.my_pos[1] < len(self.board[0]) and \
             #         (self.board[new_pos[0]][new_pos[1]] not in [-1, 1, 2])):
             #         assert (1 == 0)
         else:
             self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
-            new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
+            new_pos = (self.rival_pos[0] + move[0], self.rival_pos[1] + move[1])
             self.rival_pos = new_pos
 
         if self.board[new_pos[0]][new_pos[1]] > 2:
             self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
-        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
+        # print(self.scores)
+        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player) + 1
 
         # return self.scores[0] - self.scores[1]
 
-    def goal(self):
-        return self.scores[0] - self.scores[1]
+    def goal(self, maximizing_player):
+        if not self.have_valid_move_check(maximizing_player):
+            if self.have_valid_move_check(not maximizing_player):
+                self.scores[not maximizing_player] -= self.penalty_score
+            return True
+        return False
 
     def have_valid_move_check(self, maximizing_player):
         for op_move in self.directions:
@@ -212,6 +238,28 @@ class State:
                 return True
         return False
 
+    def number_pf_legal_moves(self, pos):
+        res = 0
+        for op_move in self.directions:
+            i = pos[0] + op_move[0]
+            j = pos[1] + op_move[1]
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
+                res += 1
+        return res
+
+    def min_dist_to_fruit(self, pos):
+        min_dist = len(self.board)
+        for r, row in enumerate(self.board):
+            for c, num in enumerate(row):
+                if self.board[r][c] > 2 and pos is not (r, c):
+                    # this is a fruit
+                    temp = md(pos, (r, c))
+                    if temp < min_dist:
+                        min_dist = temp
+        return min_dist
+
+
+
         # # only on leaf
         # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
         #     # im stack
@@ -221,13 +269,10 @@ class State:
         #     # the rival stack
         #     return self.self_score - self.rival_score + self.penalty_score > 0
 
-
     # def get_min_max(self, maximizing_player):
     #     if maximizing_player:
     #         return self.scores[0] - self.scores[1] - self.penalty_score
     #     return self.scores[0] - self.scores[1] + self.penalty_score
 
-
     # def print_state_t(self):
     #     print("====print test==== my pos is: ", self.my_pos)
-

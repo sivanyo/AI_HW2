@@ -33,25 +33,26 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        if depth is 0:
-            return self.goal(), None  # TODO!!!! need to return heuristaka!
+        if depth == 0 or state.goal(maximizing_player):
+            return state.utility(maximizing_player), state.last_move
             # return self.utility(state, maximizing_player), None
 
         succ_moves = self.succ(maximizing_player)
 
-        if len(succ_moves) == 0:
-            # print("reach leaf, return: ", self.goal())
-            return self.goal(), None
+        # if len(succ_moves) == 0:
+        #     # print("reach leaf, return: ", self.goal())
+        #     return self.goal(), None
 
         if maximizing_player:
             best_val = float('-inf')
             best_move = None
             for move in succ_moves:
+                state.last_move = move
                 state_copy = copy.deepcopy(state)
                 state_copy.perform_move(True, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, False)
-                if val[0] > best_val:
+                if val[0] >= best_val:
                     best_val = val[0]
                     best_move = move
             return best_val, best_move
@@ -60,11 +61,12 @@ class MiniMax(SearchAlgos):
             worst_val = float('inf')
             worst_move = None
             for move in succ_moves:
+                state.last_move = move
                 state_copy = copy.deepcopy(state)
                 state_copy.perform_move(False, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, True)
-                if val[0] < worst_val:
+                if val[0] <= worst_val:
                     worst_val = val[0]
                     worst_move = move
             return worst_val, worst_move
