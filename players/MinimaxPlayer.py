@@ -1,6 +1,8 @@
 """
 MiniMax Player
 """
+import time
+
 from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
 import copy
@@ -64,17 +66,28 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing minimax move")
+        #print("start computing minimax move")
+        start = time.time()
         self.turns_till_fruit_gone -= 1
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone+1)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = minimax_algo.search(state, 20, True)
+        depth = 1
+        iter_time = 0
+        best_move = None, None
+        while time.time() + 4*iter_time - start < time_limit:
+            # branch factor is 4, so the time will be times 4
+            # the time gap when the curr iter will end, is now-start + curr_iter_time
+            # todo : maybe just for safe change to time.time() + 4*iter_time - start -0.01 < time_limit
+            cur_time = time.time()
+            best_move = minimax_algo.search(state, depth, True)
+            iter_time = time.time() - cur_time
+            depth += 1
         if best_move[1] is None:
             print("im out")
             exit(0)
-        print("minmax choose the move: ", best_move)
-        print("assume score will be: ", players_score, "+= ", best_move[0])
+        # print("minmax choose the move: ", best_move)
+        # print("assume score will be: ", players_score, "+= ", best_move[0])
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
 
