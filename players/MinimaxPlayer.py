@@ -22,10 +22,12 @@ class Player(AbstractPlayer):
         self.scores = (0, 0)
         self.num_of_left = 0
         self.num_of_left_rival = 0
-        self.min_dist_to_fruit = 0
+        self.min_dist_to_fruit = 0, None
+        self.rival_min_dist_to_fruit = 0, None
         self.fruits_on_board_dict = {}
         self.my_move = None
         self.turns_till_fruit_gone = 0
+        self.turns = 0
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -36,13 +38,16 @@ class Player(AbstractPlayer):
             - board: np.array, a 2D matrix of the board.
         No output is expected.
         """
+
         self.board = board
-        row_len = len(board)
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
+        self.turns_till_fruit_gone = min(len(board), len(board[0]))
+        # max md in the board is row + col
+        # this field is a tuple of (min dist, pos of fruit)
+        self.min_dist_to_fruit = len(board) + len(board[0]), None
         for r, row in enumerate(board):
             for c, num in enumerate(row):
-                col_len = len(row)
                 if num is not -1:
                     available += 1
                 if num == 1:
@@ -54,7 +59,8 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
-        self.turns_till_fruit_gone = 15
+        self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
+        self.rival_min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
         # self.turns_till_fruit_gone = min(row_len, col_len)  # TODO! right now the segel files gives max_fruit_time=15,
         #  but originally they told it is like this line ^
         # todo : add some info about fruits
@@ -66,16 +72,16 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        #print("start computing minimax move")
+        # print("start computing minimax move")
         start = time.time()
         self.turns_till_fruit_gone -= 1
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone+1)
+                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit, self.fruits_on_board_dict)
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         depth = 1
         iter_time = 0
         best_move = None, None
-        while time.time() + 4*iter_time - start < time_limit:
+        while time.time() + 4 * iter_time - start < time_limit:
             # branch factor is 4, so the time will be times 4
             # the time gap when the curr iter will end, is now-start + curr_iter_time
             # todo : maybe just for safe change to time.time() + 4*iter_time - start -0.01 < time_limit
@@ -95,6 +101,7 @@ class Player(AbstractPlayer):
         # self.pos[0] += tmp1[0]
         # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
+        self.turns += 1
 
         return best_move[1]
 
@@ -108,7 +115,10 @@ class Player(AbstractPlayer):
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
-        self.turns_till_fruit_gone -= 1
+        self.turns += 1
+        if pos is self.min_dist_to_fruit[1]:
+            # the rival just took the closest fruit to me, need to recalc the min dist
+            self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(self.board) + len(self.board[0]), self.pos)
         # maybe should update info in self - ?
 
     def update_fruits(self, fruits_on_board_dict):
@@ -119,9 +129,12 @@ class Player(AbstractPlayer):
                                     'value' is the value of this fruit.
         No output is expected.
         """
-        self.fruits_on_board_dict = fruits_on_board_dict  # TODO can we copt dict like this?!?!
+        self.fruits_on_board_dict = {}
+        self.board = update_fruits_on_board(self.board, fruits_on_board_dict)
+
+        # TODO can we copt dict like this?!?!
         # TODO: erase the following line and implement this function. In case you choose not to use it, use 'pass' instead of the following line.
-        #raise NotImplementedError
+        # raise NotImplementedError
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
@@ -130,12 +143,30 @@ class Player(AbstractPlayer):
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
 
 
+def update_fruits_on_board(board, fruits_on_board_dict):
+    new_board = board
+    for fruit in fruits_on_board_dict:
+        # meaning it is a fruit
+        # delete the fruit, put 0 because can still go there, but we won't get any points
+        new_board[fruit[0]][fruit[1]] = 0
+    return new_board
+
+
+def calc_min_dist_to_fruit(player, max_md_dist, pos):
+    min_dist_to_fruit = max_md_dist, None
+    for fruit in player.fruits_on_board_dict:
+        if md(fruit, pos) <= player.min_dist_to_fruit[0]:
+            min_dist_to_fruit = md(fruit, pos), fruit
+    return min_dist_to_fruit
+
+
 def md(loc1, loc2):
     return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
 
 
 class State:
-    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone):
+    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, min_dist_to_fruit,
+                 rival_min_dist_to_fruit, fruits_dict):
         self.board = board
         self.my_pos = my_pos
         self.rival_pos = rival_pos
@@ -145,19 +176,23 @@ class State:
         self.penalty_score = penalty_score
         self.turns_till_fruit_gone = turns_till_fruit_gone
         self.last_move = None
+        self.min_dist_to_fruit = min_dist_to_fruit
+        self.rival_min_dist_to_fruit = rival_min_dist_to_fruit
+        self.turns = 0
+        self.fruits_dict = fruits_dict
 
     def heuristic(self, maximizing_player):
         val = 0
         if maximizing_player:
-            val += self.scores[0] > self.scores[1]
+            val += self.scores[0] - self.scores[1]
             val += self.number_pf_legal_moves(self.my_pos)
-            val += 1/(self.min_dist_to_fruit(self.my_pos))
-            val += self.min_dist_to_fruit(self.rival_pos)
+            val += 1 / self.min_dist_to_fruit[0]
+            val += self.rival_min_dist_to_fruit[0]
         else:
-            val += self.scores[1] > self.scores[0]
+            val += self.scores[1] - self.scores[0]
             val += self.number_pf_legal_moves(self.rival_pos)
-            val += 1 / (self.min_dist_to_fruit(self.rival_pos))
-            val += self.min_dist_to_fruit(self.my_pos)
+            val += 1 / self.rival_min_dist_to_fruit[0]
+            val += self.min_dist_to_fruit[0]
 
         return val
 
@@ -210,6 +245,10 @@ class State:
         return succ
 
     def perform_move(self, maximizing_player, move):
+        self.turns += 1
+        if self.turns_till_fruit_gone == self.turns:
+            self.board = update_fruits_on_board(self.board, self.fruits_dict)
+
         if maximizing_player:
             # print("this is my old pos: ", self.my_pos)
             self.board[self.my_pos[0]][self.my_pos[1]] = -1
@@ -260,27 +299,25 @@ class State:
                 res += 1
         return res
 
-    def min_dist_to_fruit(self, pos):
-        min_dist = len(self.board)
-        for r, row in enumerate(self.board):
-            for c, num in enumerate(row):
-                if self.board[r][c] > 2 and pos is not (r, c):
-                    # this is a fruit
-                    temp = md(pos, (r, c))
-                    if temp < min_dist:
-                        min_dist = temp
-        return min_dist
+    # def min_dist_to_fruit(self, pos):
+    #     min_dist = len(self.board)
+    #     for r, row in enumerate(self.board):
+    #         for c, num in enumerate(row):
+    #             if self.board[r][c] > 2 and pos is not (r, c):
+    #                 # this is a fruit
+    #                 temp = md(pos, (r, c))
+    #                 if temp < min_dist:
+    #                     min_dist = temp
+    #     return min_dist
 
-
-
-        # # only on leaf
-        # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
-        #     # im stack
-        #     return self.self_score - self.penalty_score - self.rival_score > 0
-        #     # im the winner
-        # else:
-        #     # the rival stack
-        #     return self.self_score - self.rival_score + self.penalty_score > 0
+    # # only on leaf
+    # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
+    #     # im stack
+    #     return self.self_score - self.penalty_score - self.rival_score > 0
+    #     # im the winner
+    # else:
+    #     # the rival stack
+    #     return self.self_score - self.rival_score + self.penalty_score > 0
 
     # def get_min_max(self, maximizing_player):
     #     if maximizing_player:

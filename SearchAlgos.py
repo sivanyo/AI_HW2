@@ -38,6 +38,11 @@ class MiniMax(SearchAlgos):
             # return self.utility(state, maximizing_player), None
 
         succ_moves = self.succ(maximizing_player)
+        if len(succ_moves) == 0:
+            # the player has only one move, check if its better to end the game
+            if state.scores[0] - 300 < state.scores[1]:
+                # if the player will choose to stack in illegal move, he won't win
+                return succ_moves[0]
 
         # if len(succ_moves) == 0:
         #     # print("reach leaf, return: ", self.goal())
