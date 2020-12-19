@@ -82,7 +82,7 @@ class Player(AbstractPlayer):
         iter_time = 0
         best_move = None, None
         while time.time() + 4 * iter_time - start < time_limit:
-            # branch factor is 4, so the time will be times 4
+            # branch factor is 4, so the time will be times 4 # TODO this is not how we should do it
             # the time gap when the curr iter will end, is now-start + curr_iter_time
             # todo : maybe just for safe change to time.time() + 4*iter_time - start -0.01 < time_limit
             cur_time = time.time()
@@ -197,25 +197,26 @@ class State:
         return val
 
     def utility(self, maximizing_player):
-        # we need to give back val
-        # there might be two reasons -
-        # 1) this is a leaf - means the game is over ! need to calculate who wins
-        # 2) depth == 0 -> need to return the heuristic val of this node
-        if self.goal(maximizing_player):
-            return self.scores[0] - self.scores[1]
-        #     # we have reached a leaf
-        #     if self.scores[0] > self.scores[1]:
-        #         # im the winner, i want this leaf to be chosen
-        #         return float('inf')
-        #     elif self.scores[0] == self.scores[1]:
-        #         # this is a tie
-        #         return 0
-        #     else:
-        #         # i lost, dont want this leaf to be chosen
-        #         return float('-inf')
-        else:
-            # this is not a leaf, need to evaluate the heuristic val of this node
-            return self.heuristic(maximizing_player)
+        return self.scores[0] - self.scores[1]
+        # # we need to give back val
+        # # there might be two reasons -
+        # # 1) this is a leaf - means the game is over ! need to calculate who wins
+        # # 2) depth == 0 -> need to return the heuristic val of this node
+        # if self.goal(maximizing_player):
+        #     return self.scores[0] - self.scores[1]
+        # #     # we have reached a leaf
+        # #     if self.scores[0] > self.scores[1]:
+        # #         # im the winner, i want this leaf to be chosen
+        # #         return float('inf')
+        # #     elif self.scores[0] == self.scores[1]:
+        # #         # this is a tie
+        # #         return 0
+        # #     else:
+        # #         # i lost, dont want this leaf to be chosen
+        # #         return float('-inf')
+        # else:
+        #     # this is not a leaf, need to evaluate the heuristic val of this node
+        #     return self.heuristic(maximizing_player)
 
     def succ(self, maximizing_player):
         # print("start succ func")

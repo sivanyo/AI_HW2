@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('-board', default='default_board.csv', type=str, 
                         help='Name of board file (.csv).')
 
-    parser.add_argument('-move_time', default=10, type=float, # todo :: change back to 200,200->10
+    parser.add_argument('-move_time', default=20, type=float, # todo :: change back to 200,200->10
                         help='Time (sec) for each turn.')
     parser.add_argument('-game_time', default=2000, type=float, 
                         help='Global game time (sec) for each player.')

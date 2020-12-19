@@ -33,16 +33,19 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        if depth == 0 or state.goal(maximizing_player):
+        if state.goal(maximizing_player):
             return state.utility(maximizing_player), state.last_move
+        elif depth == 0:
+            return state.heuristic(maximizing_player), state.last_move
             # return self.utility(state, maximizing_player), None
 
         succ_moves = self.succ(maximizing_player)
-        if len(succ_moves) == 0:
-            # the player has only one move, check if its better to end the game
-            if state.scores[0] - 300 < state.scores[1]:
-                # if the player will choose to stack in illegal move, he won't win
-                return succ_moves[0]
+
+        # if len(succ_moves) == 1:
+        #     # the player has only one move, check if its better to end the game
+        #     if state.scores[0] - 300 > state.scores[1]: # TODO we dont know the panelty from here
+        #         # if the player will choose to stack in illegal move, he won't win
+        #         return succ_moves[0]
 
         # if len(succ_moves) == 0:
         #     # print("reach leaf, return: ", self.goal())
@@ -52,8 +55,8 @@ class MiniMax(SearchAlgos):
             best_val = float('-inf')
             best_move = None
             for move in succ_moves:
-                state.last_move = move
                 state_copy = copy.deepcopy(state)
+                state_copy.last_move = move
                 state_copy.perform_move(True, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, False)
@@ -66,8 +69,8 @@ class MiniMax(SearchAlgos):
             worst_val = float('inf')
             worst_move = None
             for move in succ_moves:
-                state.last_move = move
                 state_copy = copy.deepcopy(state)
+                state_copy.last_move = move
                 state_copy.perform_move(False, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, True)
