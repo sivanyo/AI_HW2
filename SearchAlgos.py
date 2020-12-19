@@ -57,7 +57,7 @@ class MiniMax(SearchAlgos):
                 state_copy.perform_move(True, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, False)
-                if val[0] >= best_val:
+                if val[0] > best_val:
                     best_val = val[0]
                     best_move = move
             return best_val, best_move
@@ -71,7 +71,7 @@ class MiniMax(SearchAlgos):
                 state_copy.perform_move(False, move)
                 minimax_algo = MiniMax(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
                 val = minimax_algo.search(state_copy, depth - 1, True)
-                if val[0] <= worst_val:
+                if val[0] < worst_val:
                     worst_val = val[0]
                     worst_move = move
             return worst_val, worst_move
