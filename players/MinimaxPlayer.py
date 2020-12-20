@@ -130,7 +130,7 @@ class Player(AbstractPlayer):
             - pos: tuple, the new position of the rival.
         No output is expected
         """
-        # mark the rival move as green
+        # mark the rival move as green  # TODO what green?
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
@@ -150,6 +150,13 @@ class Player(AbstractPlayer):
         """
         self.fruits_on_board_dict = {}
         self.board = update_fruits_on_board(self.board, fruits_on_board_dict)
+
+        if self.turns_till_fruit_gone == 0:  # TODO lets talk about it
+            for r, row in enumerate(self.board):
+                for c, num in enumerate(row):
+                    if self.board[r][c] > 2:
+                        # this is fruit
+                        self.board[r][c] = 0
         # TODO: erase the following line and implement this function. In case you choose not to use it, use 'pass' instead of the following line.
         #raise NotImplementedError
 
@@ -165,7 +172,7 @@ def update_fruits_on_board(board, fruits_on_board_dict):
     for fruit in fruits_on_board_dict:
         # meaning it is a fruit
         # delete the fruit, put 0 because can still go there, but we won't get any points
-        new_board[fruit[0]][fruit[1]] = 0
+        new_board[fruit[0]][fruit[1]] = 0  # TODO ???!??
     return new_board
 
 def calc_min_dist_to_fruit(player, max_md_dist, pos):

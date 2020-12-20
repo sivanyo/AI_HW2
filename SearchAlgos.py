@@ -71,7 +71,7 @@ class MiniMax(SearchAlgos):
 
 class AlphaBeta(SearchAlgos):
 
-    def search(self, state, depth, maximizing_player, alpha=ALPHA_VALUE_INIT, beta=BETA_VALUE_INIT):
+    def search(self, state, depth, maximizing_player, alpha=float('-inf'), beta=float('inf')):
         """Start the AlphaBeta algorithm.
         :param state: The state to start from.
         :param depth: The maximum allowed depth for the algorithm.
@@ -80,5 +80,50 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # TODO: erase the following line and implement this function.
-        raise NotImplementedError
+
+        if self.goal(maximizing_player):  # TODO
+            return self.utility(maximizing_player, True), None
+
+        if depth <= 0:  # TODO
+            return self.utility(maximizing_player, False), None
+
+        succ_moves = self.succ(maximizing_player)
+
+        if maximizing_player:  # max player
+            best_val = float('-inf')
+            best_move = None
+            for move in succ_moves:
+                state_copy = copy.deepcopy(state)
+                state_copy.perform_move(True, move)
+                search_algo = AlphaBeta(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
+                val = search_algo.search(state_copy, depth - 1, False, alpha, beta)
+                if val[0] > best_val:
+                    best_val = val[0]
+                    best_move = move
+                alpha = max(alpha, best_val)
+                if beta <= alpha:
+                    return float('inf'), None
+            return best_val, best_move
+            #     if val[0] is not None and val[0] > best_val:  # TODO another option. lets talk about it
+            #         best_val = val[0]
+            #         best_move = move
+            #     alpha = max(alpha, best_val)
+            #     if beta <= alpha:
+            #         return None, None
+            # return best_val, best_move
+
+        else:  # min player
+            worst_val = float('inf')
+            worst_move = None
+            for move in succ_moves:
+                state_copy = copy.deepcopy(state)
+                state_copy.perform_move(False, move)
+                search_algo = AlphaBeta(state_copy.utility, state_copy.succ, state_copy.perform_move, state_copy.goal)
+                val = search_algo.search(state_copy, depth - 1, True, alpha, beta)
+                if val[0] is not None and val[0] < worst_val:
+                    worst_val = val[0]
+                    worst_move = move
+                beta = min(beta, worst_val)
+                if beta <= alpha:
+                    return float('-inf'), None
+            return worst_val, worst_move
