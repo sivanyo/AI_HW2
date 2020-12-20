@@ -6,8 +6,8 @@ import SearchAlgos
 import copy
 import utils
 
-
 # TODO: you can import more modules, if needed
+import time
 
 
 class Player(AbstractPlayer):
@@ -69,15 +69,45 @@ class Player(AbstractPlayer):
         """
         print("start computing minimax move")
         self.turns_till_fruit_gone -= 1
+
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone+1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
+        start_depth = 4  # TODO for what i checked, for time_limit=1 sec => no problem depth=5
+        start_time = time.time()
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = minimax_algo.search(state, 20, True)
+        best_move = minimax_algo.search(state, start_depth, True)
+        iter_time = time.time() - start_time
+        time_limit -= iter_time
+
+        start_time = time.time()
+        add_depth = ((len(self.board)*len(self.board[0]))/2)
+        # mul_tmp = 4 ** (len(self.board)*len(self.board[0])/2)
+        while iter_time * (4 ** add_depth) > time_limit - 0.1:  # TODO not the most accurate formula
+            add_depth -= 1
+
+        if iter_time * (4 ** add_depth) <= time_limit + start_time - time.time() - 0.1:  # TODO
+            best_move = minimax_algo.search(state, start_depth+add_depth, True)
+
+#         # state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
+#         #               self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+#         #               self.fruits_on_board_dict)
+#         # minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
+#         # depth = 1
+#         # iter_time = 0
+#         # best_move = None, None
+#         # while time.time() + 4 * iter_time - start < time_limit:
+#         #     # branch factor is 4, so the time will be times 4 # TODO this is not how we should do it
+#         #     # the time gap when the curr iter will end, is now-start + curr_iter_time
+#         #     # todo : maybe just for safe change to time.time() + 4*iter_time - start -0.01 < time_limit
+#         #     cur_time = time.time()
+#         #     best_move = minimax_algo.search(state, depth, True)
+#         #     iter_time = time.time() - cur_time
+#         #     depth += 1
+
         if best_move[1] is None:
             exit(0)
         print("minmax choose the move: ", best_move)
-        print("assume score will be: ", players_score, "+= ", best_move[0])
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
 
