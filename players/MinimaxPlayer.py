@@ -67,12 +67,17 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing minimax move")
+        print("start computing minimax move") # TODO printing for test. del before sub
         self.turns_till_fruit_gone -= 1
 
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone+1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
+
+        # ### TODO for tetsing: runs clean minimax
+        # minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
+        # best_move = minimax_algo.search(state, 30, True)
+
         start_depth = 4  # TODO for what i checked, for time_limit=1 sec => no problem depth=5
         start_time = time.time()
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
@@ -87,8 +92,9 @@ class Player(AbstractPlayer):
             add_depth -= 1
 
         if iter_time * (4 ** add_depth) <= time_limit + start_time - time.time() - 0.1:  # TODO
-            best_move = minimax_algo.search(state, start_depth+add_depth, True)
+            best_move = minimax_algo.search(state, start_depth+add_depth + 2, True)  # TODO +2 assumption
 
+######################################################
 #         # state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
 #         #               self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
 #         #               self.fruits_on_board_dict)
@@ -107,7 +113,7 @@ class Player(AbstractPlayer):
 
         if best_move[1] is None:
             exit(0)
-        print("minmax choose the move: ", best_move)
+        print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
 
@@ -204,11 +210,12 @@ class State:
 
         return val
 
-        return val
-
     def utility(self, maximizing_player, score_or_heuristic):
         if score_or_heuristic:
-            return self.scores[0] - self.scores[1]
+            if self.scores[0] - self.scores[1] > 0:
+                return float('inf')  # if the player will win - so go for it!
+            else:
+                return self.scores[0] - self.scores[1]
         return self.heuristic(maximizing_player)
 
     def succ(self, maximizing_player):
@@ -258,8 +265,6 @@ class State:
             self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
         self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
 
-        # return self.scores[0] - self.scores[1]
-
     def goal(self, maximizing_player):
         if not self.have_valid_move_check(maximizing_player):
             if self.have_valid_move_check(not maximizing_player):
@@ -289,23 +294,4 @@ class State:
                 res += 1
         return res
 
-
-        # # only on leaf
-        # if self.num_of_left is 0 and self.num_of_left_rival is not 0:
-        #     # im stack
-        #     return self.self_score - self.penalty_score - self.rival_score > 0
-        #     # im the winner
-        # else:
-        #     # the rival stack
-        #     return self.self_score - self.rival_score + self.penalty_score > 0
-
-
-    # def get_min_max(self, maximizing_player):
-    #     if maximizing_player:
-    #         return self.scores[0] - self.scores[1] - self.penalty_score
-    #     return self.scores[0] - self.scores[1] + self.penalty_score
-
-
-    # def print_state_t(self):
-    #     print("====print test==== my pos is: ", self.my_pos)
 
