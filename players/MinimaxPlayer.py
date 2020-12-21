@@ -79,7 +79,6 @@ class Player(AbstractPlayer):
         iter_time = 0
         best_move = None, None
         while time.time() + (3 * iter_time) - start < time_limit-.01:
-            # branch factor is 4, so the time will be times 4 # TODO this is not how we should do it
             # the time gap when the curr iter will end, is now-start + curr_iter_time
             cur_time = time.time()
             best_move = minimax_algo.search(state, copy.copy(depth), True)
@@ -88,7 +87,6 @@ class Player(AbstractPlayer):
         if best_move[1] is None:
             # print("im out")
             exit(0)
-        # print("max depth reached is ", depth-1)
         print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
@@ -276,5 +274,3 @@ class State:
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 res += 1
         return res
-
-

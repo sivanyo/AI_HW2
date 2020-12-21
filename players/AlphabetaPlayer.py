@@ -6,6 +6,7 @@ import SearchAlgos
 import copy
 import utils
 #TODO: you can import more modules, if needed
+import time
 
 
 class Player(AbstractPlayer):
@@ -71,7 +72,7 @@ class Player(AbstractPlayer):
                       self.fruits_on_board_dict)
 
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = search_algo.search(state, 30, True)  # TODO depth
+        best_move = search_algo.search(state, len(self.board)*len(self.board[0])/2, True)  # TODO depth
         if best_move[1] is None:
             exit(0)
         print("alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
