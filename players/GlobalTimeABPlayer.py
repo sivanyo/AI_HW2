@@ -2,14 +2,18 @@
 MiniMax Player with AlphaBeta pruning and global time
 """
 from players.AbstractPlayer import AbstractPlayer
-#TODO: you can import more modules, if needed
+# TODO: you can import more modules, if needed
 import SearchAlgos
 import copy
 import utils
+import math
+import time
+
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
-        AbstractPlayer.__init__(self, game_time, penalty_score) # keep the inheritance of the parent's (AbstractPlayer) __init__()
+        AbstractPlayer.__init__(self, game_time,
+                                penalty_score)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
         self.board = None
         self.rival_pos = None
         self.pos = None
@@ -21,11 +25,12 @@ class Player(AbstractPlayer):
         self.fruits_on_board_dict = {}
         self.my_move = None
         self.turns_till_fruit_gone = 0
-
-        self.game_time = game_time
-
-
-
+        self.max_turns = 0
+        self.turns = 0
+        self.time_for_search_5 = 0
+        time.game_time = game_time
+        self.time_for_curr_iter = 0
+        print("first turn will take : ", self.time_for_curr_iter, "global time is : ", self.game_time)
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -36,6 +41,8 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         self.board = board
+        self.max_turns = len(self.board)*len(self.board[0])/2
+        self.time_for_curr_iter = (-2/3) * self.game_time / (((1/3) ** self.max_turns) - 1)
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
         self.turns_till_fruit_gone = min(len(board), len(board[0]))
@@ -57,6 +64,13 @@ class Player(AbstractPlayer):
                     self.fruits_on_board_dict[r, c] = num
         self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
         self.rival_min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
+        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
+                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+                      self.fruits_on_board_dict)
+        search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
+        cur_time = time.time()
+        move = search_algo.search(state, 5, True)
+        self.time_for_search_5 = time.time() - cur_time
         # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
@@ -67,16 +81,33 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing Global AB move")  # TODO printing for test. del before sub
-        self.turns_till_fruit_gone -= 1
 
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
-
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = search_algo.search(state, len(self.board) * len(self.board[0]) / 2, True)  # TODO depth
+        # if self.time_for_search_5 == 0:
+        #     cur_time = time.time()
+        #     move = search_algo.search(state,5, True)
+        #     self.time_for_search_5 = time.time() - cur_time
+
+        self.turns_till_fruit_gone -= 1
+        # calc depth
+        depth = 5
+        allowed_time = self.time_for_curr_iter
+        tmp_time = self.time_for_search_5
+        if allowed_time < 1.5:
+            depth = 5
+        else:
+            while tmp_time < allowed_time - 0.001:
+                depth += 1
+                tmp_time *= 3
+
+        best_move = search_algo.search(state, depth-1, True)  # TODO depth
         if best_move[1] is None:
+            print("best move is None")
             exit(0)
+        print("i search to depth: ", depth -1 )
         print("Global AB choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
@@ -85,6 +116,9 @@ class Player(AbstractPlayer):
         # self.pos[0] += tmp1[0]
         # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
+
+        self.time_for_curr_iter /= 3
+        print("next iter will take: ", self.time_for_curr_iter)
 
         return best_move[1]
 
