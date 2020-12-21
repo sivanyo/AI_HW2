@@ -8,6 +8,7 @@ import utils
 
 # TODO: you can import more modules, if needed
 import time
+from fractions import Fraction
 
 
 class Player(AbstractPlayer):
@@ -82,17 +83,35 @@ class Player(AbstractPlayer):
         start_time = time.time()
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
         best_move = minimax_algo.search(state, start_depth, True)
-        iter_time = time.time() - start_time
-        time_limit -= iter_time
 
-        start_time = time.time()
-        add_depth = ((len(self.board)*len(self.board[0]))/2)
-        # mul_tmp = 4 ** (len(self.board)*len(self.board[0])/2)
-        while iter_time * (4 ** add_depth) > time_limit - 0.1:  # TODO not the most accurate formula
-            add_depth -= 1
+        total_run_time = round(time.time() - start_time, 4)
+        time_limit -= total_run_time + 0.15
+        iter_time = round((time.time() - start_time)/(1+4+16+27), 4)
+        iter_time = max(Fraction(iter_time), 0.00005)
+        last_level = 27
+        add_depth = 1
+        while total_run_time < time_limit:
+            add_depth += 1
+            print("add_depth: ", add_depth, "total_run_time: ", total_run_time)
+            tmp = float(last_level*iter_time)
+            total_run_time += round(tmp, 5)
+            last_level = 2.5*last_level
 
-        if iter_time * (4 ** add_depth) <= time_limit + start_time - time.time() - 0.1:  # TODO
-            best_move = minimax_algo.search(state, start_depth+add_depth + 2, True)  # TODO +2 assumption
+        print("GO!!!!!!!!!!!! add_depth: ", add_depth, "total_run_time: ", total_run_time)
+        if add_depth > 0:
+            best_move = minimax_algo.search(state, start_depth + add_depth, True)
+
+        # start_time = time.time()
+        # add_depth = ((len(self.board)*len(self.board[0]))/2)
+        # # mul_tmp = 4 ** (len(self.board)*len(self.board[0])/2)
+        # while iter_time * (3 ** add_depth) > time_limit - 0.1:  # TODO not the most accurate formula
+        #     add_depth -= 1
+        #
+        # print("add_depth is: ", add_depth, "sum depth is: ", start_depth+add_depth-1)
+        # best_move = minimax_algo.search(state, start_depth + add_depth-1, True)
+
+        # if iter_time * (4 ** add_depth) <= time_limit + start_time - time.time() - 0.1:  # TODO
+        #     best_move = minimax_algo.search(state, start_depth+add_depth + 2, True)  # TODO +2 assumption
 
 ######################################################
 #         # state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
@@ -130,7 +149,7 @@ class Player(AbstractPlayer):
             - pos: tuple, the new position of the rival.
         No output is expected
         """
-        # mark the rival move as green  # TODO what green?
+        # mark the rival move as green
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
@@ -172,7 +191,7 @@ def update_fruits_on_board(board, fruits_on_board_dict):
     for fruit in fruits_on_board_dict:
         # meaning it is a fruit
         # delete the fruit, put 0 because can still go there, but we won't get any points
-        new_board[fruit[0]][fruit[1]] = 0  # TODO ???!??
+        new_board[fruit[0]][fruit[1]] = 0
     return new_board
 
 def calc_min_dist_to_fruit(player, max_md_dist, pos):
