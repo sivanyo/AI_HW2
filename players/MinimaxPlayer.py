@@ -85,21 +85,22 @@ class Player(AbstractPlayer):
         best_move = minimax_algo.search(state, start_depth, True)
 
         total_run_time = round(time.time() - start_time, 4)
-        time_limit -= total_run_time + 0.15
+        time_limit -= total_run_time + 0.1
         iter_time = round((time.time() - start_time)/(1+4+16+27), 4)
-        iter_time = max(Fraction(iter_time), 0.00005)
+        iter_time = max(Fraction(iter_time), 0.00005)  # TODO 0.00005
         last_level = 27
-        add_depth = 1
+        add_depth = 0
         while total_run_time < time_limit:
-            add_depth += 1
             print("add_depth: ", add_depth, "total_run_time: ", total_run_time)
-            tmp = float(last_level*iter_time)
-            total_run_time += round(tmp, 5)
-            last_level = 2.5*last_level
+            total_run_time += round(float(last_level*iter_time), 5)
+            last_level = 2.2*last_level  # TODO 2.2
+            add_depth += 1
 
-        print("GO!!!!!!!!!!!! add_depth: ", add_depth, "total_run_time: ", total_run_time)
+        print("******** lets GO: add_depth: ", add_depth, "total_run_time: ", total_run_time, " ********")
         if add_depth > 0:
-            best_move = minimax_algo.search(state, start_depth + add_depth, True)
+            start_time = time.time()
+            best_move = minimax_algo.search(state, start_depth + add_depth + 2, True)  # TODO +2 assumption
+            print("time it actually took: ", time.time()-start_time)
 
         # start_time = time.time()
         # add_depth = ((len(self.board)*len(self.board[0]))/2)
