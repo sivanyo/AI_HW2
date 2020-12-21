@@ -110,7 +110,22 @@ class State:
         #         return float('inf')  # if the player will win - so go for it!
         #     else:
         #         return self.scores[0] - self.scores[1]
-        return self.heuristic(maximizing_player)
+
+        else:  # alternate heuristic
+            val = self.scores[0] - self.scores[1]
+            if val > self.penalty_score:
+                val *= 2
+            tmp1 = self.number_pf_legal_moves(self.my_pos)
+            tmp2 = self.number_pf_legal_moves(self.rival_pos)
+            if tmp1 != 0 and tmp2 == 0:
+                return val + self.penalty_score
+            val += (tmp1 - tmp2)*4
+            val += (1 / self.min_dist_to_fruit[0])*2
+            val -= (1 / self.rival_min_dist_to_fruit[0])
+            # print(val)
+            return val
+
+        # return self.heuristic(maximizing_player)  # TODO
 
     def succ(self, maximizing_player):
         succ = []

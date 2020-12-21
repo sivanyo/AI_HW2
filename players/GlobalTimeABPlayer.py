@@ -27,7 +27,7 @@ class Player(AbstractPlayer):
         self.turns_till_fruit_gone = 0
         self.max_turns = 0
         self.turns = 0
-        self.time_for_search_5 = 0
+        self.time_for_search_8 = 0
         time.game_time = game_time
         self.time_for_curr_iter = 0
         print("first turn will take : ", self.time_for_curr_iter, "global time is : ", self.game_time)
@@ -69,8 +69,8 @@ class Player(AbstractPlayer):
                       self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
         cur_time = time.time()
-        move = search_algo.search(state, 5, True)
-        self.time_for_search_5 = time.time() - cur_time
+        move = search_algo.search(state, 8, True)  # TODO change from 5 to 8
+        self.time_for_search_8 = time.time() - cur_time
         # todo : add some info about fruits
 
     def make_move(self, time_limit, players_score):
@@ -93,12 +93,10 @@ class Player(AbstractPlayer):
 
         self.turns_till_fruit_gone -= 1
         # calc depth
-        depth = 5
+        depth = 8
         allowed_time = self.time_for_curr_iter
-        tmp_time = self.time_for_search_5
-        if allowed_time < 1.5:
-            depth = 9
-        else:
+        tmp_time = self.time_for_search_8
+        if allowed_time > 1.2:
             while tmp_time < allowed_time - 0.001:
                 depth += 1
                 tmp_time *= 3
