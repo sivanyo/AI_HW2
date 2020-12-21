@@ -1,12 +1,14 @@
 import operator
 import numpy as np
 import os
+import copy
 
-#TODO: edit the alpha and beta initialization values for AlphaBeta algorithm.
+# TODO: edit the alpha and beta initialization values for AlphaBeta algorithm.
 # instead of 'None', write the real initialization value, learned in class.
 # hint: you can use np.inf
-ALPHA_VALUE_INIT = None
-BETA_VALUE_INIT = None 
+ALPHA_VALUE_INIT = float('-inf')  # TODO why np.inf and not like this? they gave as code with float('inf')
+BETA_VALUE_INIT = float('inf')
+
 
 def get_directions():
     """Returns all the possible directions of a player in the game as a list of tuples.
@@ -30,7 +32,7 @@ def get_board_from_csv(board_file_name):
     """
     board_path = os.path.join('boards', board_file_name)
     board = np.loadtxt(open(board_path, "rb"), delimiter=" ")
-    
+
     # mirror board
     board = np.flipud(board)
     i, j = len(board), len(board[0])
@@ -38,12 +40,141 @@ def get_board_from_csv(board_file_name):
     blocks = [(blocks[0][i], blocks[1][i]) for i in range(len(blocks[0]))]
     start_player_1 = np.where(board == 1)
     start_player_2 = np.where(board == 2)
-    
+
     if len(start_player_1[0]) != 1 or len(start_player_2[0]) != 1:
         raise Exception('The given board is not legal - too many start locations.')
-    
+
     start_player_1 = (start_player_1[0][0], start_player_1[1][0])
     start_player_2 = (start_player_2[0][0], start_player_2[1][0])
 
     return [(i, j), blocks, [start_player_1, start_player_2]]
-    
+
+    ################### from here down, its only our code ###################
+
+
+def update_fruits_on_board(board, fruits_on_board_dict):
+    new_board = board
+    for fruit in fruits_on_board_dict:
+        # meaning it is a fruit
+        # delete the fruit, put 0 because can still go there, but we won't get any points
+        new_board[fruit[0]][fruit[1]] = 0
+    return new_board
+
+
+def calc_min_dist_to_fruit(player, max_md_dist, pos):
+    min_dist_to_fruit = max_md_dist, None
+    for fruit in player.fruits_on_board_dict:
+        if md(fruit, pos) <= player.min_dist_to_fruit[0]:
+            min_dist_to_fruit = md(fruit, pos), fruit
+    return min_dist_to_fruit
+
+
+def md(loc1, loc2):
+    return abs(loc1[0] - loc2[0]) + abs(loc1[1] - loc2[1])
+
+
+class State:
+    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, min_dist_to_fruit,
+                 rival_min_dist_to_fruit, fruits_dict):
+        self.board = board
+        self.my_pos = my_pos
+        self.rival_pos = rival_pos
+        self.scores = scores  # scores[0] = my score, scores[1] = rival score
+        self.directions = get_directions()
+        self.penalty_score = penalty_score
+        self.turns_till_fruit_gone = turns_till_fruit_gone
+        self.min_dist_to_fruit = min_dist_to_fruit
+        self.rival_min_dist_to_fruit = rival_min_dist_to_fruit
+        self.turns = 0
+        self.fruits_dict = fruits_dict
+
+    def heuristic(self, maximizing_player):
+        val = 0
+        if maximizing_player:
+            val += self.scores[0] - self.scores[1]
+            val += self.number_pf_legal_moves(self.my_pos)
+            val += 1 / self.min_dist_to_fruit[0]
+            val += self.rival_min_dist_to_fruit[0]
+        else:
+            val += self.scores[1] - self.scores[0]
+            val += self.number_pf_legal_moves(self.rival_pos)
+            val += 1 / self.rival_min_dist_to_fruit[0]
+            val += self.min_dist_to_fruit[0]
+
+        return val
+
+    def utility(self, maximizing_player, score_or_heuristic):
+        if score_or_heuristic:
+            return self.scores[0] - self.scores[1]  # TODO maybe mul 10 or 100
+        #     if self.scores[0] - self.scores[1] > 0:  # TODO
+        #         return float('inf')  # if the player will win - so go for it!
+        #     else:
+        #         return self.scores[0] - self.scores[1]
+        return self.heuristic(maximizing_player)
+
+    def succ(self, maximizing_player):
+        succ = []
+        for op_move in self.directions:
+            if maximizing_player:
+                i = self.my_pos[0] + op_move[0]
+                j = self.my_pos[1] + op_move[1]
+            else:
+                i = self.rival_pos[0] + op_move[0]
+                j = self.rival_pos[1] + op_move[1]
+
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
+                succ.append(op_move)
+
+        if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
+            self.scores[not maximizing_player] -= self.penalty_score
+
+        self.turns_till_fruit_gone -= 1
+        if self.turns_till_fruit_gone == 0:
+            for r, row in enumerate(self.board):
+                for c, num in enumerate(row):
+                    if self.board[r][c] > 2:
+                        # this is fruit
+                        self.board[r][c] = 0
+        return succ
+
+    def perform_move(self, maximizing_player, move):
+        if maximizing_player:
+            self.board[self.my_pos[0]][self.my_pos[1]] = -1
+            new_pos = (self.my_pos[0] + move[0], self.my_pos[1] + move[1])
+            self.my_pos = new_pos
+        else:
+            self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
+            new_pos = (self.rival_pos[0] + move[0], self.rival_pos[1] + move[1])
+            self.rival_pos = new_pos
+
+        if self.board[new_pos[0]][new_pos[1]] > 2:
+            self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
+        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player) + 1
+
+    def goal(self, maximizing_player):
+        if not self.have_valid_move_check(maximizing_player):
+            if self.have_valid_move_check(not maximizing_player):
+                self.scores[not maximizing_player] -= self.penalty_score
+            return True
+        return False
+
+    def have_valid_move_check(self, maximizing_player):
+        for op_move in self.directions:
+            if maximizing_player:
+                i = self.my_pos[0] + op_move[0]
+                j = self.my_pos[1] + op_move[1]
+            else:
+                i = self.rival_pos[0] + op_move[0]
+                j = self.rival_pos[1] + op_move[1]
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
+                return True
+        return False
+
+    def number_pf_legal_moves(self, pos):
+        res = 0
+        for op_move in self.directions:
+            i = pos[0] + op_move[0]
+            j = pos[1] + op_move[1]
+            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
+                res += 1
+        return res

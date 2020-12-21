@@ -67,12 +67,12 @@ class Player(AbstractPlayer):
         print("start computing alpha-beta move")  # TODO printing for test. del before sub
         self.turns_till_fruit_gone -= 1
 
-        state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
+        state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
 
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = search_algo.search(state, len(self.board)*len(self.board[0])/2, True)  # TODO depth
+        best_move = search_algo.search(state, len(self.board)*len(self.board[0]), True)  # TODO depth == max possible for the game
         if best_move[1] is None:
             exit(0)
         print("alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
@@ -120,94 +120,10 @@ class Player(AbstractPlayer):
                         # this is fruit
                         self.board[r][c] = 0
 
-        #TODO: erase the following line and implement this function. In case you choose not to use this function, 
-        # use 'pass' instead of the following line.
-
     ########## helper functions in class ##########
     #TODO: add here helper functions in class, if needed
 
-
     ########## helper functions for AlphaBeta algorithm ##########
     #TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
+    """ State and common func are implement in utils.py """
 
-class State:
-    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, min_dist_to_fruit,
-                 rival_min_dist_to_fruit, fruits_dict):
-        self.board = board
-        self.my_pos = my_pos
-        self.rival_pos = rival_pos
-        # scores[0] = my score, scores[1] = rival score
-        self.scores = scores
-        self.directions = utils.get_directions()
-        self.penalty_score = penalty_score
-        self.turns_till_fruit_gone = turns_till_fruit_gone
-        # self.min_dist_to_fruit = min_dist_to_fruit
-        # self.rival_min_dist_to_fruit = rival_min_dist_to_fruit
-        # self.turns = 0
-        self.fruits_dict = fruits_dict
-
-    def utility(self, maximizing_player=True, score_or_heuristic=True):
-        return self.scores[0] - self.scores[1]
-        # if self.scores[0] - self.scores[1] > 0:  # TODO this trick does not work with alpha-beta
-        #     return float('inf')  # if the player will win - so go for it!
-        # else:
-        #     return self.scores[0] - self.scores[1]
-
-    def succ(self, maximizing_player):
-        succ = []
-        for op_move in self.directions:
-            if maximizing_player:
-                i = self.my_pos[0] + op_move[0]
-                j = self.my_pos[1] + op_move[1]
-            else:
-                i = self.rival_pos[0] + op_move[0]
-                j = self.rival_pos[1] + op_move[1]
-
-            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
-                succ.append(op_move)
-
-        if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
-            self.scores[not maximizing_player] -= self.penalty_score
-
-        self.turns_till_fruit_gone -= 1
-        if self.turns_till_fruit_gone == 0:
-            for r, row in enumerate(self.board):
-                for c, num in enumerate(row):
-                    if self.board[r][c] > 2:
-                        # this is fruit
-                        self.board[r][c] = 0
-        # print(self.scores)
-        return succ
-
-    def perform_move(self, maximizing_player, move):
-        if maximizing_player:
-            self.board[self.my_pos[0]][self.my_pos[1]] = -1
-            new_pos = (self.my_pos[0]+move[0], self.my_pos[1]+move[1])
-            self.my_pos = new_pos
-        else:
-            self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
-            new_pos = (self.rival_pos[0]+move[0], self.rival_pos[1]+move[1])
-            self.rival_pos = new_pos
-
-        if self.board[new_pos[0]][new_pos[1]] > 2:
-            self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
-        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player)+1
-
-    def goal(self, maximizing_player):
-        if not self.have_valid_move_check(maximizing_player):
-            if self.have_valid_move_check(not maximizing_player):
-                self.scores[not maximizing_player] -= self.penalty_score
-            return True
-        return False
-
-    def have_valid_move_check(self, maximizing_player):
-        for op_move in self.directions:
-            if maximizing_player:
-                i = self.my_pos[0] + op_move[0]
-                j = self.my_pos[1] + op_move[1]
-            else:
-                i = self.rival_pos[0] + op_move[0]
-                j = self.rival_pos[1] + op_move[1]
-            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
-                return True
-        return False
