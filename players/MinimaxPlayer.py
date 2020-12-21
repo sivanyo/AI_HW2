@@ -15,9 +15,9 @@ class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
         # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
-        self.board = None  # SH
-        self.rival_pos = None  # SH
-        self.pos = None  # SH
+        self.board = None
+        self.rival_pos = None
+        self.pos = None
         self.scores = (0, 0)
         self.num_of_left = 0
         self.num_of_left_rival = 0
