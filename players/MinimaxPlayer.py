@@ -68,71 +68,27 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing minimax move") # TODO printing for test. del before sub
+        print("start computing minimax move")  # TODO printing for test. del before sub
+        start = time.time()
         self.turns_till_fruit_gone -= 1
-
         state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone+1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
-
-        # ### TODO for tetsing: runs clean minimax
-        # minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-        # best_move = minimax_algo.search(state, 30, True)
-
-        start_depth = 4  # TODO for what i checked, for time_limit=1 sec => no problem depth=5
-        start_time = time.time()
         minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-        best_move = minimax_algo.search(state, start_depth, True)
-
-        total_run_time = round(time.time() - start_time, 4)
-        time_limit -= total_run_time + 0.1
-        iter_time = round((time.time() - start_time)/(1+4+16+27), 4)
-        iter_time = max(Fraction(iter_time), 0.00005)  # TODO 0.00005
-        last_level = 27
-        add_depth = 0
-        while total_run_time < time_limit:
-            print("add_depth: ", add_depth, "total_run_time: ", total_run_time)
-            total_run_time += round(float(last_level*iter_time), 5)
-            last_level = 2.2*last_level  # TODO 2.2
-            add_depth += 1
-
-        print("******** lets GO: add_depth: ", add_depth, "total_run_time: ", total_run_time, " ********")
-        if add_depth > 0:
-            start_time = time.time()
-            best_move = minimax_algo.search(state, start_depth + add_depth + 2, True)  # TODO +2 assumption
-            print("time it actually took: ", time.time()-start_time)
-
-        # start_time = time.time()
-        # add_depth = ((len(self.board)*len(self.board[0]))/2)
-        # # mul_tmp = 4 ** (len(self.board)*len(self.board[0])/2)
-        # while iter_time * (3 ** add_depth) > time_limit - 0.1:  # TODO not the most accurate formula
-        #     add_depth -= 1
-        #
-        # print("add_depth is: ", add_depth, "sum depth is: ", start_depth+add_depth-1)
-        # best_move = minimax_algo.search(state, start_depth + add_depth-1, True)
-
-        # if iter_time * (4 ** add_depth) <= time_limit + start_time - time.time() - 0.1:  # TODO
-        #     best_move = minimax_algo.search(state, start_depth+add_depth + 2, True)  # TODO +2 assumption
-
-######################################################
-#         # state = State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-#         #               self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-#         #               self.fruits_on_board_dict)
-#         # minimax_algo = SearchAlgos.MiniMax(state.utility, state.succ, state.perform_move, state.goal)
-#         # depth = 1
-#         # iter_time = 0
-#         # best_move = None, None
-#         # while time.time() + 4 * iter_time - start < time_limit:
-#         #     # branch factor is 4, so the time will be times 4 # TODO this is not how we should do it
-#         #     # the time gap when the curr iter will end, is now-start + curr_iter_time
-#         #     # todo : maybe just for safe change to time.time() + 4*iter_time - start -0.01 < time_limit
-#         #     cur_time = time.time()
-#         #     best_move = minimax_algo.search(state, depth, True)
-#         #     iter_time = time.time() - cur_time
-#         #     depth += 1
-
+        depth = 1
+        iter_time = 0
+        best_move = None, None
+        while time.time() + (3 * iter_time) - start < time_limit-.01:
+            # branch factor is 4, so the time will be times 4 # TODO this is not how we should do it
+            # the time gap when the curr iter will end, is now-start + curr_iter_time
+            cur_time = time.time()
+            best_move = minimax_algo.search(state, copy.copy(depth), True)
+            iter_time = time.time() - cur_time
+            depth += 1
         if best_move[1] is None:
+            # print("im out")
             exit(0)
+        # print("max depth reached is ", depth-1)
         print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
