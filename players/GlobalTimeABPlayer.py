@@ -41,7 +41,7 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         self.board = board
-        self.max_turns = len(self.board)*len(self.board[0])/2
+        self.max_turns = math.ceil(len(self.board)*len(self.board[0])/2)
         self.time_for_curr_iter = (-2/3) * self.game_time / (((1/3) ** self.max_turns) - 1)
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
@@ -97,7 +97,7 @@ class Player(AbstractPlayer):
         allowed_time = self.time_for_curr_iter
         tmp_time = self.time_for_search_5
         if allowed_time < 1.5:
-            depth = 5
+            depth = 9
         else:
             while tmp_time < allowed_time - 0.001:
                 depth += 1
@@ -210,10 +210,11 @@ class State:
 
     def utility(self, maximizing_player, score_or_heuristic):
         if score_or_heuristic:
-            if self.scores[0] - self.scores[1] > 0:
-                return float('inf')  # if the player will win - so go for it!
-            else:
-                return self.scores[0] - self.scores[1]
+            return self.scores[0] - self.scores[1]
+            # if self.scores[0] - self.scores[1] > 0:
+            #     return float('inf')  # if the player will win - so go for it!
+            # else:
+            #     return self.scores[0] - self.scores[1]
         return self.heuristic(maximizing_player)
 
     def succ(self, maximizing_player):
