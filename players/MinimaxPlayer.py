@@ -26,7 +26,7 @@ class Player(AbstractPlayer):
         self.fruits_on_board_dict = {}
         self.my_move = None
         self.turns_till_fruit_gone = 0
-        #self.turns = 0
+        self.turns = 0
         self.board_size = 0
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
@@ -71,8 +71,10 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing minimax move")  # TODO printing for test. del before sub
+        if self.turns * 2 == self.turns_till_fruit_gone:
+            self.update_fruits(self.fruits_on_board_dict)
         start = time.time()
-        self.turns_till_fruit_gone -= 1
+        self.turns += 1
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
@@ -108,10 +110,12 @@ class Player(AbstractPlayer):
         No output is expected
         """
         # mark the rival move as green
+        if self.turns * 2 == self.turns_till_fruit_gone:
+            self.update_fruits(self.fruits_on_board_dict)
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
-        self.turns_till_fruit_gone -= 1
+        self.turns += 1
         if pos is self.min_dist_to_fruit[1]:
             # the rival just took the closest fruit to me, need to recalc the min dist
             self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(self.board) + len(self.board[0]), self.pos)

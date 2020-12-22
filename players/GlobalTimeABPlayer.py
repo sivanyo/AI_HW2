@@ -81,6 +81,8 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing Global AB move")  # TODO printing for test. del before sub
+        if self.turns * 2 == self.turns_till_fruit_gone :
+            self.update_fruits(self.fruits_on_board_dict)
 
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
@@ -91,7 +93,7 @@ class Player(AbstractPlayer):
         #     move = search_algo.search(state,5, True)
         #     self.time_for_search_5 = time.time() - cur_time
 
-        self.turns_till_fruit_gone -= 1
+        self.turns += 1
         # calc depth
         depth = 8
         allowed_time = self.time_for_curr_iter
@@ -127,10 +129,12 @@ class Player(AbstractPlayer):
         No output is expected
         """
         # mark the rival move as green
+        if self.turns * 2 == self.turns_till_fruit_gone :
+            self.update_fruits(self.fruits_on_board_dict)
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
-        self.turns_till_fruit_gone -= 1
+        self.turns += 1
         if pos is self.min_dist_to_fruit[1]:
             # the rival just took the closest fruit to me, need to recalc the min dist
             self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(self.board) + len(self.board[0]), self.pos)
