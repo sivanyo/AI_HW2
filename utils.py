@@ -89,20 +89,20 @@ class State:
         self.fruits_dict = fruits_dict
         self.max_turns = max_turns
 
-    def heuristic(self, maximizing_player):
-        val = 0
-        if maximizing_player:
-            val += self.scores[0] - self.scores[1]
-            val += self.number_pf_legal_moves(self.my_pos)
-            val += 1 / self.min_dist_to_fruit[0]
-            val += self.rival_min_dist_to_fruit[0]
-        else:
-            val -= self.scores[1] - self.scores[0]
-            val -= self.number_pf_legal_moves(self.rival_pos)
-            val -= 1 / self.rival_min_dist_to_fruit[0]
-            val -= self.min_dist_to_fruit[0]
-
-        return val
+    # def heuristic(self, maximizing_player):
+    #     val = 0
+    #     if maximizing_player:
+    #         val += self.scores[0] - self.scores[1]
+    #         val += self.number_pf_legal_moves(self.my_pos)
+    #         val += 1 / self.min_dist_to_fruit[0]
+    #         val += self.rival_min_dist_to_fruit[0]
+    #     else:
+    #         val -= self.scores[1] - self.scores[0]
+    #         val -= self.number_pf_legal_moves(self.rival_pos)
+    #         val -= 1 / self.rival_min_dist_to_fruit[0]
+    #         val -= self.min_dist_to_fruit[0]
+    #
+    #     return val
 
     def have_valid_move_check(self, maximizing_player):
         for op_move in self.directions:
@@ -183,19 +183,33 @@ def utility(state, score_or_heuristic):
     #     else:
     #         return self.scores[0] - self.scores[1]
 
-    val = 0
+    # val = 0
+    # if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:
+    #     val += (state.scores[0] - state.scores[1]) * 10
+    # elif state.scores[0] - state.scores[1] > 0:
+    #     val += (state.scores[0] - state.scores[1]) * 3 / (state.max_turns - state.turns)
+    # elif state.scores[0] == state.scores[1]:
+    #     val += 0
+    # else:
+    #     val += state.scores[0] - state.scores[1]
+    #
+    # val += state.number_pf_legal_moves(state.my_pos) + (4 - state.number_pf_legal_moves(state.rival_pos))
+    #
+    # val += len(state.board)*len(state.board[0]) / state.min_dist_to_fruit[0]
+
+    val = (state.scores[0] - state.scores[1]) * 3
     if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:
-        val += (state.scores[0] - state.scores[1]) * 10
-    elif state.scores[0] - state.scores[1] > 0:
-        val += (state.scores[0] - state.scores[1]) * 3 / (state.max_turns - state.turns)
-    elif state.scores[0] == state.scores[1]:
-        val += 0
-    else:
-        val += state.scores[0] - state.scores[1]
+        val += state.penalty_score*3
 
-    val += state.number_pf_legal_moves(state.my_pos) + (4 - state.number_pf_legal_moves(state.rival_pos))
+    if state.turns_till_fruit_gone - state.turns > 0:
+        if state.turns_till_fruit_gone - state.turns < state.min_dist_to_fruit[0] * 2:
+            val += 150  # TODO
+        if state.turns_till_fruit_gone - state.turns < state.rival_min_dist_to_fruit[0] * 2:
+            val -= 150
 
-    val += len(state.board)*len(state.board[0]) / state.min_dist_to_fruit[0]
+    val += (state.number_pf_legal_moves(state.my_pos) - state.number_pf_legal_moves(state.rival_pos))*(val*0.3)
+
+    # val += len(state.board) * len(state.board[0]) / state.min_dist_to_fruit[0]
 
     return val
 

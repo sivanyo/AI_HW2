@@ -28,9 +28,9 @@ class Player(AbstractPlayer):
         self.max_turns = 0
         self.turns = 0
         self.time_for_search_8 = 0
-        time.game_time = game_time
+        self.game_time = game_time
         self.time_for_curr_iter = 0
-        print("first turn will take : ", self.time_for_curr_iter, "global time is : ", self.game_time)
+
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -88,15 +88,9 @@ class Player(AbstractPlayer):
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                             self.fruits_on_board_dict, self.max_turns)
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
-        # if self.time_for_search_5 == 0:
-        #     cur_time = time.time()
-        #     move = search_algo.search(state,5, True)
-        #     self.time_for_search_5 = time.time() - cur_time
-
         self.turns += 1
-        # calc depth
-        depth = 8
-        allowed_time = self.time_for_curr_iter
+        depth = 9  # calc depth
+        allowed_time = min(self.time_for_curr_iter, time_limit)
         tmp_time = self.time_for_search_8
         if allowed_time > 1.2:
             while tmp_time < allowed_time - 0.001:
@@ -113,11 +107,9 @@ class Player(AbstractPlayer):
         tmp1 = best_move[1]
 
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
-        # self.pos[0] += tmp1[0]
-        # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
 
-        self.time_for_curr_iter /= 3
+        self.time_for_curr_iter = (self.time_for_curr_iter/3) + allowed_time - (tmp_time/3)
         print("next iter will take: ", self.time_for_curr_iter)
 
         return best_move[1]
