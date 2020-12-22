@@ -60,10 +60,10 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
-        self.max_turns = math.ceil(available / 2)
-        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)
         self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
         self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
+        self.max_turns = math.ceil(available / 2)
+        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                             self.fruits_on_board_dict, self.max_turns)
@@ -81,12 +81,12 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing Global AB move")  # TODO printing for test. del before sub
-        if self.turns  == self.turns_till_fruit_gone * 2:
+        if self.turns == self.turns_till_fruit_gone * 2:
             self.update_fruits(self.fruits_on_board_dict)
 
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                            self.fruits_on_board_dict)
+                            self.fruits_on_board_dict, self.max_turns)
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         # if self.time_for_search_5 == 0:
         #     cur_time = time.time()

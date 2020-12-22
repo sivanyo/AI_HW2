@@ -175,7 +175,7 @@ def succ(state, maximizing_player):
     return succ
 
 
-def utility(state, maximizing_player, score_or_heuristic):
+def utility(state, score_or_heuristic):
     if score_or_heuristic:
         return state.scores[0] - state.scores[1]  # TODO maybe mul 10 or 100
     #     if self.scores[0] - self.scores[1] > 0:  # TODO

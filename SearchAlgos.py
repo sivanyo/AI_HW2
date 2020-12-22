@@ -34,10 +34,10 @@ class MiniMax(SearchAlgos):
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
         if self.goal(state, maximizing_player):
-            return self.utility(state, maximizing_player, True), None
+            return self.utility(state, True), None
 
         if depth <= 0:
-            return self.utility(state, maximizing_player, False), None
+            return self.utility(state, False), None
 
         succ_moves = self.succ(state, maximizing_player)
 
@@ -81,10 +81,10 @@ class AlphaBeta(SearchAlgos):
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
         if self.goal(state, maximizing_player):  # TODO
-            return self.utility(state, maximizing_player, True), None
+            return self.utility(state, True), None
 
         if depth <= 0:  # TODO
-            return self.utility(state, maximizing_player, False), None
+            return self.utility(state, False), None
 
         succ_moves = self.succ(state, maximizing_player)
 

@@ -56,8 +56,8 @@ class Player(AbstractPlayer):
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
         self.max_turns = available
-        # self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
-        # self.rival_min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
+        self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
+        self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
