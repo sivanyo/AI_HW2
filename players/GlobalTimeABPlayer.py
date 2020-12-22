@@ -41,8 +41,6 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         self.board = board
-        self.max_turns = math.ceil(len(self.board)*len(self.board[0])/2)
-        self.time_for_curr_iter = (-2/3) * self.game_time / (((1/3) ** self.max_turns) - 1)
         # need to set my pos, the rival pos, all the grey area and all fruits
         available = 0
         self.turns_till_fruit_gone = min(len(board), len(board[0]))
@@ -62,6 +60,8 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
+        self.max_turns = math.ceil(available / 2)
+        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)
         self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
         self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
