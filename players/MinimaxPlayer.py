@@ -71,7 +71,7 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing minimax move")  # TODO printing for test. del before sub
-        if self.turns * 2 == self.turns_till_fruit_gone:
+        if self.turns  == self.turns_till_fruit_gone * 2:
             self.update_fruits(self.fruits_on_board_dict)
         start = time.time()
         self.turns += 1
@@ -110,7 +110,7 @@ class Player(AbstractPlayer):
         No output is expected
         """
         # mark the rival move as green
-        if self.turns * 2 == self.turns_till_fruit_gone:
+        if self.turns  == self.turns_till_fruit_gone * 2:
             self.update_fruits(self.fruits_on_board_dict)
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
@@ -132,7 +132,7 @@ class Player(AbstractPlayer):
         self.fruits_on_board_dict = {}
         self.board = utils.update_fruits_on_board(self.board, fruits_on_board_dict)
 
-        if self.turns_till_fruit_gone == 0:  # TODO lets talk about it
+        if self.turns == self.turns_till_fruit_gone * 2:  # TODO lets talk about it
             for r, row in enumerate(self.board):
                 for c, num in enumerate(row):
                     if self.board[r][c] > 2:
