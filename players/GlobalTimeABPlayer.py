@@ -65,8 +65,8 @@ class Player(AbstractPlayer):
         self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
         self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
-                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                      self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+                            self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
         cur_time = time.time()
         move = search_algo.search(state, 8, True)  # TODO change from 5 to 8
@@ -83,8 +83,8 @@ class Player(AbstractPlayer):
         print("start computing Global AB move")  # TODO printing for test. del before sub
 
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                      self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+                            self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
         # if self.time_for_search_5 == 0:
         #     cur_time = time.time()
@@ -101,11 +101,11 @@ class Player(AbstractPlayer):
                 depth += 1
                 tmp_time *= 3
 
-        best_move = search_algo.search(state, depth-1, True)  # TODO depth
+        best_move = search_algo.search(state, depth - 1, True)  # TODO depth
         if best_move[1] is None:
             print("best move is None")
             exit(0)
-        print("i search to depth: ", depth -1 )
+        print("i search to depth: ", depth - 1)
         print("Global AB choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
@@ -153,4 +153,3 @@ class Player(AbstractPlayer):
                     if self.board[r][c] > 2:
                         # this is fruit
                         self.board[r][c] = 0
-

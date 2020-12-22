@@ -27,6 +27,7 @@ class Player(AbstractPlayer):
         self.my_move = None
         self.turns_till_fruit_gone = 0
         #self.turns = 0
+        self.board_size = 0
         # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -44,6 +45,7 @@ class Player(AbstractPlayer):
         # max md in the board is row + col
         # this field is a tuple of (min dist, pos of fruit)
         self.min_dist_to_fruit = len(board) + len(board[0]), None
+        self.board_size = len(board) * len(board[0])
         for r, row in enumerate(board):
             for c, num in enumerate(row):
                 if num is not -1:
@@ -78,7 +80,7 @@ class Player(AbstractPlayer):
         depth = 1
         iter_time = 0
         best_move = None, None
-        while time.time() + (3 * iter_time) - start < time_limit-.01:
+        while time.time() + (3 * iter_time) - start < time_limit-.01 and depth < self.board_size:
             # the time gap when the curr iter will end, is now-start + curr_iter_time
             cur_time = time.time()
             best_move = minimax_algo.search(state, copy.copy(depth), True)
@@ -87,6 +89,7 @@ class Player(AbstractPlayer):
         if best_move[1] is None:
             # print("im out")
             exit(0)
+        print("deoth is : ", depth -1)
         print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
