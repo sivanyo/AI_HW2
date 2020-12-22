@@ -103,29 +103,6 @@ class State:
 
         return val
 
-
-
-    def perform_move(self, maximizing_player, move):
-        if maximizing_player:
-            self.board[self.my_pos[0]][self.my_pos[1]] = -1
-            new_pos = (self.my_pos[0] + move[0], self.my_pos[1] + move[1])
-            self.my_pos = new_pos
-        else:
-            self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
-            new_pos = (self.rival_pos[0] + move[0], self.rival_pos[1] + move[1])
-            self.rival_pos = new_pos
-
-        if self.board[new_pos[0]][new_pos[1]] > 2:
-            self.scores[not maximizing_player] += self.board[new_pos[0]][new_pos[1]]
-        self.board[new_pos[0]][new_pos[1]] = (not maximizing_player) + 1
-
-    def goal(self, maximizing_player):
-        if not self.have_valid_move_check(maximizing_player):
-            if self.have_valid_move_check(not maximizing_player):
-                self.scores[not maximizing_player] -= self.penalty_score
-            return True
-        return False
-
     def have_valid_move_check(self, maximizing_player):
         for op_move in self.directions:
             if maximizing_player:
@@ -146,6 +123,30 @@ class State:
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 res += 1
         return res
+
+
+def perform_move(state, maximizing_player, move):
+    if maximizing_player:
+        state.board[state.my_pos[0]][state.my_pos[1]] = -1
+        new_pos = (state.my_pos[0] + move[0], state.my_pos[1] + move[1])
+        state.my_pos = new_pos
+    else:
+        state.board[state.rival_pos[0]][state.rival_pos[1]] = -1
+        new_pos = (state.rival_pos[0] + move[0], state.rival_pos[1] + move[1])
+        state.rival_pos = new_pos
+
+    if state.board[new_pos[0]][new_pos[1]] > 2:
+        state.scores[not maximizing_player] += state.board[new_pos[0]][new_pos[1]]
+    state.board[new_pos[0]][new_pos[1]] = (not maximizing_player) + 1
+
+
+def goal(state, maximizing_player):
+    if not state.have_valid_move_check(maximizing_player):
+        if state.have_valid_move_check(not maximizing_player):
+            state.scores[not maximizing_player] -= state.penalty_score
+        return True
+    return False
+
 
 def succ(state, maximizing_player):
     succ = []
@@ -180,18 +181,33 @@ def utility(state, maximizing_player, score_or_heuristic):
     #     else:
     #         return self.scores[0] - self.scores[1]
 
-    else:  # alternate heuristic
-        val = state.scores[0] - state.scores[1]
-        if val > state.penalty_score:
-            val *= 2
-        tmp1 = state.number_pf_legal_moves(state.my_pos)
-        tmp2 = state.number_pf_legal_moves(state.rival_pos)
-        if tmp1 != 0 and tmp2 == 0:
-            return val + state.penalty_score
-        val += (tmp1 - tmp2)*4
-        val += (1 / state.min_dist_to_fruit[0])*2
-        val -= (1 / state.rival_min_dist_to_fruit[0])
-        # print(val)
-        return val
+    val = 0
+    if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:
+        val += (state.scores[0] - state.scores[1]) * 10
+    elif state.scores[0] - state.scores[1] > 0:
+        val += (state.scores[0] - state.scores[1]) * 3 / (state.max_turns - state.turns)
+    elif state.scores[0] == state.scores[1]:
+        val += 0
+    else:
+        val += state.scores[0] - state.scores[1]
+
+    val += state.number_pf_legal_moves(state.my_pos) + (4 - state.number_pf_legal_moves(state.rival_pos))
+
+    val += len(state.board)*len(state.board[0]) / state.min_dist_to_fruit[0]
+
+
+    # else:  # alternate heuristic
+    #     val = state.scores[0] - state.scores[1]
+    #     if val > state.penalty_score:
+    #         val *= 2
+    #     tmp1 = state.number_pf_legal_moves(state.my_pos)
+    #     tmp2 = state.number_pf_legal_moves(state.rival_pos)
+    #     if tmp1 != 0 and tmp2 == 0:
+    #         return val + state.penalty_score
+    #     val += (tmp1 - tmp2)*4
+    #     val += (1 / state.min_dist_to_fruit[0])*2 ## TODO
+    #     val -= (1 / state.rival_min_dist_to_fruit[0])
+    #     # print(val)
+    #     return val
 
     # return self.heuristic(maximizing_player)  # TODO

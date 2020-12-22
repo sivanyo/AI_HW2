@@ -74,7 +74,7 @@ class Player(AbstractPlayer):
                       self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                       self.fruits_on_board_dict)
 
-        search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, state.perform_move, state.goal)
+        search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         best_move = search_algo.search(state, len(self.board)*len(self.board[0]), True)  # TODO depth == max possible for the game
         if best_move[1] is None:
             exit(0)
