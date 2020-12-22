@@ -77,7 +77,7 @@ class Player(AbstractPlayer):
         self.turns += 1
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                      self.fruits_on_board_dict)
+                      self.fruits_on_board_dict, self.board_size)
         minimax_algo = SearchAlgos.MiniMax(utils.utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
         iter_time = 0

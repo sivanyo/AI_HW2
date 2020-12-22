@@ -75,7 +75,7 @@ def md(loc1, loc2):
 
 class State:
     def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, min_dist_to_fruit,
-                 rival_min_dist_to_fruit, fruits_dict):
+                 rival_min_dist_to_fruit, fruits_dict, max_turns):
         self.board = board
         self.my_pos = my_pos
         self.rival_pos = rival_pos
@@ -87,6 +87,7 @@ class State:
         self.rival_min_dist_to_fruit = rival_min_dist_to_fruit
         self.turns = 0
         self.fruits_dict = fruits_dict
+        self.max_turns = max_turns
 
     def heuristic(self, maximizing_player):
         val = 0
@@ -173,6 +174,7 @@ def succ(state, maximizing_player):
                     state.board[r][c] = 0
     return succ
 
+
 def utility(state, maximizing_player, score_or_heuristic):
     if score_or_heuristic:
         return state.scores[0] - state.scores[1]  # TODO maybe mul 10 or 100
@@ -194,6 +196,8 @@ def utility(state, maximizing_player, score_or_heuristic):
     val += state.number_pf_legal_moves(state.my_pos) + (4 - state.number_pf_legal_moves(state.rival_pos))
 
     val += len(state.board)*len(state.board[0]) / state.min_dist_to_fruit[0]
+
+    return val
 
 
     # else:  # alternate heuristic

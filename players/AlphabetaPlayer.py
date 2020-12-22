@@ -5,13 +5,14 @@ from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
 import copy
 import utils
-#TODO: you can import more modules, if needed
+# TODO: you can import more modules, if needed
 import time
 
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
-        AbstractPlayer.__init__(self, game_time, penalty_score) # keep the inheritance of the parent's (AbstractPlayer) __init__()
+        AbstractPlayer.__init__(self, game_time,
+                                penalty_score)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
         self.board = None
         self.rival_pos = None
         self.pos = None
@@ -24,7 +25,7 @@ class Player(AbstractPlayer):
         self.my_move = None
         self.turns_till_fruit_gone = 0
         self.turns = 0
-
+        self.max_turns = 0
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -54,6 +55,7 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     # this is fruit, need to add to dict
                     self.fruits_on_board_dict[r, c] = num
+        self.max_turns = available
         # self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
         # self.rival_min_dist_to_fruit = calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
 
@@ -71,11 +73,12 @@ class Player(AbstractPlayer):
         self.turns += 1
 
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                      self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
+                            self.fruits_on_board_dict, self.max_turns)
 
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
-        best_move = search_algo.search(state, len(self.board)*len(self.board[0]), True)  # TODO depth == max possible for the game
+        best_move = search_algo.search(state, len(self.board) * len(self.board[0]),
+                                       True)  # TODO depth == max possible for the game
         if best_move[1] is None:
             exit(0)
         print("alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
@@ -88,7 +91,6 @@ class Player(AbstractPlayer):
         self.board[self.pos[0]][self.pos[1]] = 1
 
         return best_move[1]
-
 
     def set_rival_move(self, pos):
         """Update your info, given the new position of the rival.
@@ -126,9 +128,8 @@ class Player(AbstractPlayer):
                         self.board[r][c] = 0
 
     ########## helper functions in class ##########
-    #TODO: add here helper functions in class, if needed
+    # TODO: add here helper functions in class, if needed
 
     ########## helper functions for AlphaBeta algorithm ##########
-    #TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
+    # TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
     """ State and common func are implement in utils.py """
-

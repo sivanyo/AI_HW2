@@ -66,7 +66,7 @@ class Player(AbstractPlayer):
         self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                            self.fruits_on_board_dict)
+                            self.fruits_on_board_dict, self.max_turns)
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         cur_time = time.time()
         move = search_algo.search(state, 8, True)  # TODO change from 5 to 8
