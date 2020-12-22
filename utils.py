@@ -96,61 +96,14 @@ class State:
             val += 1 / self.min_dist_to_fruit[0]
             val += self.rival_min_dist_to_fruit[0]
         else:
-            val += self.scores[1] - self.scores[0]
-            val += self.number_pf_legal_moves(self.rival_pos)
-            val += 1 / self.rival_min_dist_to_fruit[0]
-            val += self.min_dist_to_fruit[0]
+            val -= self.scores[1] - self.scores[0]
+            val -= self.number_pf_legal_moves(self.rival_pos)
+            val -= 1 / self.rival_min_dist_to_fruit[0]
+            val -= self.min_dist_to_fruit[0]
 
         return val
 
-    def utility(self, maximizing_player, score_or_heuristic):
-        if score_or_heuristic:
-            return self.scores[0] - self.scores[1]  # TODO maybe mul 10 or 100
-        #     if self.scores[0] - self.scores[1] > 0:  # TODO
-        #         return float('inf')  # if the player will win - so go for it!
-        #     else:
-        #         return self.scores[0] - self.scores[1]
 
-        else:  # alternate heuristic
-            val = self.scores[0] - self.scores[1]
-            if val > self.penalty_score:
-                val *= 2
-            tmp1 = self.number_pf_legal_moves(self.my_pos)
-            tmp2 = self.number_pf_legal_moves(self.rival_pos)
-            if tmp1 != 0 and tmp2 == 0:
-                return val + self.penalty_score
-            val += (tmp1 - tmp2)*4
-            val += (1 / self.min_dist_to_fruit[0])*2
-            val -= (1 / self.rival_min_dist_to_fruit[0])
-            # print(val)
-            return val
-
-        # return self.heuristic(maximizing_player)  # TODO
-
-    def succ(self, maximizing_player):
-        succ = []
-        for op_move in self.directions:
-            if maximizing_player:
-                i = self.my_pos[0] + op_move[0]
-                j = self.my_pos[1] + op_move[1]
-            else:
-                i = self.rival_pos[0] + op_move[0]
-                j = self.rival_pos[1] + op_move[1]
-
-            if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
-                succ.append(op_move)
-
-        if len(succ) == 0 and self.have_valid_move_check(not maximizing_player):
-            self.scores[not maximizing_player] -= self.penalty_score
-
-        self.turns_till_fruit_gone -= 1
-        if self.turns_till_fruit_gone == 0:
-            for r, row in enumerate(self.board):
-                for c, num in enumerate(row):
-                    if self.board[r][c] > 2:
-                        # this is fruit
-                        self.board[r][c] = 0
-        return succ
 
     def perform_move(self, maximizing_player, move):
         if maximizing_player:
@@ -193,3 +146,52 @@ class State:
             if 0 <= i < len(self.board) and 0 <= j < len(self.board[0]) and (self.board[i][j] not in [-1, 1, 2]):
                 res += 1
         return res
+
+def succ(state, maximizing_player):
+    succ = []
+    for op_move in state.directions:
+        if maximizing_player:
+            i = state.my_pos[0] + op_move[0]
+            j = state.my_pos[1] + op_move[1]
+        else:
+            i = state.rival_pos[0] + op_move[0]
+            j = state.rival_pos[1] + op_move[1]
+
+        if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and (state.board[i][j] not in [-1, 1, 2]):
+            succ.append(op_move)
+
+    if len(succ) == 0 and state.have_valid_move_check(not maximizing_player):
+        state.scores[not maximizing_player] -= state.penalty_score
+
+    state.turns_till_fruit_gone -= 1
+    if state.turns_till_fruit_gone == 0:
+        for r, row in enumerate(state.board):
+            for c, num in enumerate(row):
+                if state.board[r][c] > 2:
+                    # this is fruit
+                    state.board[r][c] = 0
+    return succ
+
+def utility(state, maximizing_player, score_or_heuristic):
+    if score_or_heuristic:
+        return state.scores[0] - state.scores[1]  # TODO maybe mul 10 or 100
+    #     if self.scores[0] - self.scores[1] > 0:  # TODO
+    #         return float('inf')  # if the player will win - so go for it!
+    #     else:
+    #         return self.scores[0] - self.scores[1]
+
+    else:  # alternate heuristic
+        val = state.scores[0] - state.scores[1]
+        if val > state.penalty_score:
+            val *= 2
+        tmp1 = state.number_pf_legal_moves(state.my_pos)
+        tmp2 = state.number_pf_legal_moves(state.rival_pos)
+        if tmp1 != 0 and tmp2 == 0:
+            return val + state.penalty_score
+        val += (tmp1 - tmp2)*4
+        val += (1 / state.min_dist_to_fruit[0])*2
+        val -= (1 / state.rival_min_dist_to_fruit[0])
+        # print(val)
+        return val
+
+    # return self.heuristic(maximizing_player)  # TODO

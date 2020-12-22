@@ -67,7 +67,7 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                             self.fruits_on_board_dict)
-        search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
+        search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, state.perform_move, state.goal)
         cur_time = time.time()
         move = search_algo.search(state, 8, True)  # TODO change from 5 to 8
         self.time_for_search_8 = time.time() - cur_time
@@ -87,7 +87,7 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                             self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
                             self.fruits_on_board_dict)
-        search_algo = SearchAlgos.AlphaBeta(state.utility, state.succ, state.perform_move, state.goal)
+        search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, state.perform_move, state.goal)
         # if self.time_for_search_5 == 0:
         #     cur_time = time.time()
         #     move = search_algo.search(state,5, True)
