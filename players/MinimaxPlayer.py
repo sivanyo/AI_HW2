@@ -13,17 +13,13 @@ from fractions import Fraction
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
-        # keep the inheritance of the parent's (AbstractPlayer) __init__()
         AbstractPlayer.__init__(self, game_time, penalty_score)
         self.board = None
         self.pos = None
         self.rival_pos = None
-        self.scores = [0, 0]
-        self.board_size = 0
         self.fruits_on_board_dict = {}
         self.turns_till_fruit_gone = 0
         self.max_turns = 0
-        # TODO: initialize more fields, if needed, and the Minimax algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -36,13 +32,11 @@ class Player(AbstractPlayer):
         self.board = board  # need to set my pos, the rival pos, all the grey area and all fruits
         self.max_turns = len(board) * len(board[0]) - 2
         self.turns_till_fruit_gone = min(len(board), len(board[0]))*2
-        # self.min_dist_to_fruit = len(board) + len(board[0]), None
-        self.board_size = len(board) * len(board[0])
         for r, row in enumerate(board):
             for c, num in enumerate(row):
                 if num == -1:
                     self.max_turns -= 1
-                if num == 1:
+                elif num == 1:
                     self.pos = (r, c)  # this my pos
                 elif num == 2:
                     self.rival_pos = (r, c)  # this is the rival starting pos
@@ -57,12 +51,12 @@ class Player(AbstractPlayer):
         print("start computing minimax move")  # TODO printing for test. del before sub
         start = time.time()
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone, self.fruits_on_board_dict, self.max_turns)
+                      self.turns_till_fruit_gone, self.fruits_on_board_dict)
         search_algo = SearchAlgos.MiniMax(utils.utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
         iter_time = 0
         best_move = None, None
-        while time.time() + (3 * iter_time) - start < time_limit-.01 and depth < self.board_size:
+        while time.time() + (3 * iter_time) - start < time_limit-.01 and depth <= self.max_turns:
             cur_time = time.time()  # the time gap when the curr iter will end, is now-start + curr_iter_time
             best_move = search_algo.search(state, depth, True)
             iter_time = time.time() - cur_time
@@ -89,7 +83,6 @@ class Player(AbstractPlayer):
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
         self.turns_till_fruit_gone -= 1
-        # self.turns += 1
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -115,4 +108,5 @@ class Player(AbstractPlayer):
 
     ########## helper functions for MiniMax algorithm ##########
     # TODO: add here the utility, succ, and perform_move functions used in MiniMax algorithm
-    """ State and common func are implement in utils.py """
+
+    """ ********************** State and common func are implement in utils.py ********************** """

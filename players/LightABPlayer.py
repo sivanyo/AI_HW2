@@ -10,20 +10,12 @@ import utils
 
 class Player(AbstractPlayer):
     def __init__(self, game_time, penalty_score):
-        AbstractPlayer.__init__(self, game_time,
-                                penalty_score)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
+        AbstractPlayer.__init__(self, game_time, penalty_score)
         self.board = None
-        self.rival_pos = None
         self.pos = None
-        self.scores = (0, 0)
-        # self.num_of_left = 0
-        # self.num_of_left_rival = 0
-        self.min_dist_to_fruit = 0, None
-        self.rival_min_dist_to_fruit = 0, None
+        self.rival_pos = None
         self.fruits_on_board_dict = {}
-        self.my_move = None
         self.turns_till_fruit_gone = 0
-        self.turns = 0
         self.max_turns = 0
 
     def set_game_params(self, board):
@@ -34,29 +26,17 @@ class Player(AbstractPlayer):
             - board: np.array, a 2D matrix of the board.
         No output is expected.
         """
-        self.board = board
-        # need to set my pos, the rival pos, all the grey area and all fruits
-        available = 0
-        self.turns_till_fruit_gone = min(len(board), len(board[0]))
-        # max md in the board is row + col
-        # this field is a tuple of (min dist, pos of fruit)
-        # self.min_dist_to_fruit = len(board) + len(board[0]), None
+        self.board = board  # need to set my pos, the rival pos, all the grey area and all fruits
+        self.max_turns = len(board) * len(board[0]) - 2
+        self.turns_till_fruit_gone = min(len(board), len(board[0])) * 2
         for r, row in enumerate(board):
             for c, num in enumerate(row):
-                if num is not -1:
-                    available += 1
-                if num == 1:
-                    self.pos = (r, c)
-                    # this my pos
+                if num == -1:
+                    self.max_turns -= 1
+                elif num == 1:
+                    self.pos = (r, c)  # this my pos
                 elif num == 2:
-                    self.rival_pos = (r, c)
-                    # this is the rival starting pos
-                elif num > 2:
-                    # this is fruit, need to add to dict
-                    self.fruits_on_board_dict[r, c] = num
-        self.max_turns = available
-        self.min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.pos)
-        self.rival_min_dist_to_fruit = utils.calc_min_dist_to_fruit(self, len(board) + len(board[0]), self.rival_pos)
+                    self.rival_pos = (r, c)  # this is the rival starting pos
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -65,31 +45,21 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing Heavy alpha-beta move")  # TODO printing for test. del before sub
-        if self.turns * 2 == self.turns_till_fruit_gone:
-            self.update_fruits(self.fruits_on_board_dict)
-
-        self.turns += 1
-
+        print("start computing Light alpha-beta move")  # TODO printing for test. del before sub
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone + 1, self.min_dist_to_fruit, self.rival_min_dist_to_fruit,
-                            self.fruits_on_board_dict, self.max_turns)
-
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(light_utility, utils.succ, utils.perform_move, utils.goal)
         heavy_player_depth = 3
         i = 1
-        best_move = search_algo.search(state, i-1+heavy_player_depth, True)
+        best_move = search_algo.search(state, i - 1 + heavy_player_depth, True)
         if best_move[1] is None:
             exit(0)
-        print("Heavy alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
+        print("Light alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
         self.board[self.pos[0]][self.pos[1]] = -1
         tmp1 = best_move[1]
-
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
-        # self.pos[0] += tmp1[0]
-        # self.pos[1] += tmp1[1]
         self.board[self.pos[0]][self.pos[1]] = 1
-
+        self.turns_till_fruit_gone -= 1
         return best_move[1]
 
     def set_rival_move(self, pos):
@@ -98,16 +68,10 @@ class Player(AbstractPlayer):
             - pos: tuple, the new position of the rival.
         No output is expected
         """
-        if self.turns * 2 == self.turns_till_fruit_gone:
-            self.update_fruits(self.fruits_on_board_dict)
         self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
         self.board[pos[0]][pos[1]] = 2
         self.rival_pos = pos
-        self.turns += 1
-        # if pos is self.min_dist_to_fruit[1]:
-        #     # the rival just took the closest fruit to me, need to recalc the min dist
-        #     self.min_dist_to_fruit = calc_min_dist_to_fruit(self, len(self.board) + len(self.board[0]), self.pos)
-        # maybe should update info in self - ?
+        self.turns_till_fruit_gone -= 1
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -117,39 +81,44 @@ class Player(AbstractPlayer):
                                     'value' is the value of this fruit.
         No output is expected.
         """
-        # TODO i wrote this diffrent from minimax. lets talk about it
-        self.fruits_on_board_dict = fruits_on_board_dict
+        for fruit_pos in self.fruits_on_board_dict.keys():
+            if self.board[fruit_pos] > 2:
+                self.board[fruit_pos] = 0
 
-        if self.turns_till_fruit_gone == 0:  # TODO lets talk about it
-            for r, row in enumerate(self.board):
-                for c, num in enumerate(row):
-                    if self.board[r][c] > 2:
-                        # this is fruit
-                        self.board[r][c] = 0
+        if self.turns_till_fruit_gone >= 0:
+            self.fruits_on_board_dict = fruits_on_board_dict
+            for fruit_pos in self.fruits_on_board_dict.keys():
+                if self.board[fruit_pos] == 0:
+                    self.board[fruit_pos] = fruits_on_board_dict[fruit_pos]
 
-        ########## helper functions in class ##########
-        # TODO: add here helper functions in class, if needed
+    ########## helper functions in class ##########
+    # TODO: add here helper functions in class, if needed
 
-        ########## helper functions for AlphaBeta algorithm ##########
-        # TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
+    ########## helper functions for AlphaBeta algorithm ##########
+    # TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
 
-    """ State and common func are implement in utils.py """
+    """ ********************** State and common func are implement in utils.py ********************** """
 
 
 def light_utility(state, score_or_heuristic):
     if score_or_heuristic:
         return state.scores[0] - state.scores[1]
 
-    num_steps_available = 0
+    max_player_steps = 0
+    min_player_steps = 0
     for d in state.directions:
         i = state.my_pos[0] + d[0]
         j = state.my_pos[0] + d[1]
 
-        # check legal move
-        if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and (state.board[i][j] not in [-1, 1, 2]):
-            num_steps_available += 1
+        n = state.my_pos[0] + d[0]
+        m = state.my_pos[0] + d[1]
 
-    if num_steps_available == 0:
-        return -1
-    else:
-        return 4 - num_steps_available
+        # check legal move for max
+        if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and (state.board[i][j] not in [-1, 1, 2]):
+            max_player_steps += 1
+        # check legal move for min
+        if 0 <= n < len(state.board) and 0 <= m < len(state.board[0]) and (state.board[n][m] not in [-1, 1, 2]):
+            min_player_steps += 1
+
+        return max_player_steps - min_player_steps
+
