@@ -49,8 +49,8 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(light_utility, utils.succ, utils.perform_move, utils.goal)
-        heavy_player_depth = 3
-        i = 1
+        heavy_player_depth = 2
+        i = 2
         best_move = search_algo.search(state, i - 1 + heavy_player_depth, True)
         if best_move[1] is None:
             exit(0)

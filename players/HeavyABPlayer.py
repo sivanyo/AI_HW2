@@ -49,7 +49,7 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict)
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
-        best_move = search_algo.search(state, 3, True)  # always with max depth=3
+        best_move = search_algo.search(state, 2, True)  # always with max depth=3 (or 2 in other test)
         if best_move[1] is None:
             exit(0)
         print("Heavy alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
