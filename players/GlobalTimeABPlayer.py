@@ -6,7 +6,6 @@ from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
 import copy
 import utils
-import math
 import time
 
 

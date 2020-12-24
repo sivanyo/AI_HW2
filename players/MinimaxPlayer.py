@@ -56,7 +56,7 @@ class Player(AbstractPlayer):
         depth = 1
         iter_time = 0
         best_move = None, None
-        while time.time() + (3 * iter_time) - start < time_limit-.02 and depth <= self.max_turns:
+        while time.time() + (3 * iter_time) - start < time_limit-.025 and depth <= self.max_turns:
             cur_time = time.time()  # the time gap when the curr iter will end, is now-start + curr_iter_time
             best_move = search_algo.search(state, depth, True)
             iter_time = time.time() - cur_time
