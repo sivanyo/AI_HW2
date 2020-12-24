@@ -114,26 +114,26 @@ def succ(state, maximizing_player):
 
 def perform_move(state, maximizing_player, move):
     if maximizing_player:
-        state.board[state.my_pos[0]][state.my_pos[1]] = -1
+        state.board[state.my_pos] = -1
         new_pos = (state.my_pos[0] + move[0], state.my_pos[1] + move[1])
         state.my_pos = new_pos
     else:
-        state.board[state.rival_pos[0]][state.rival_pos[1]] = -1
+        state.board[state.rival_pos] = -1
         new_pos = (state.rival_pos[0] + move[0], state.rival_pos[1] + move[1])
         state.rival_pos = new_pos
 
-    if state.board[new_pos[0]][new_pos[1]] > 2:
-        state.scores[not maximizing_player] += state.board[new_pos[0]][new_pos[1]]
+    if state.board[new_pos] > 2:
+        state.scores[not maximizing_player] += state.board[new_pos]
         del state.fruits_dict[new_pos]
-    state.board[new_pos[0]][new_pos[1]] = (not maximizing_player) + 1
+    state.board[new_pos] = (not maximizing_player) + 1
 
     state.turns_till_fruit_gone -= 1
 
     if state.turns_till_fruit_gone == 0:
-        for r, row in enumerate(state.board):
-            for c, num in enumerate(row):
-                if state.board[r][c] > 2:  # this is fruit
-                    state.board[r][c] = 0
+        for fruit_pos in state.fruits_dict.keys():
+            if state.board[fruit_pos] > 2:
+                state.board[fruit_pos] = 0
+        state.fruits_dict = {}
 
 
 def utility(state, score_or_heuristic):

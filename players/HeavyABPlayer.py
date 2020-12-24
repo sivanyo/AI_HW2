@@ -53,10 +53,10 @@ class Player(AbstractPlayer):
         if best_move[1] is None:
             exit(0)
         print("Heavy alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
-        self.board[self.pos[0]][self.pos[1]] = -1
+        self.board[self.pos] = -1
         tmp1 = best_move[1]
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
-        self.board[self.pos[0]][self.pos[1]] = 1
+        self.board[self.pos] = 1
         self.turns_till_fruit_gone -= 1
         return best_move[1]
 
@@ -66,8 +66,8 @@ class Player(AbstractPlayer):
             - pos: tuple, the new position of the rival.
         No output is expected
         """
-        self.board[self.rival_pos[0]][self.rival_pos[1]] = -1
-        self.board[pos[0]][pos[1]] = 2
+        self.board[self.rival_pos] = -1
+        self.board[pos] = 2
         self.rival_pos = pos
         self.turns_till_fruit_gone -= 1
 
@@ -79,15 +79,12 @@ class Player(AbstractPlayer):
                                     'value' is the value of this fruit.
         No output is expected.
         """
-        for fruit_pos in self.fruits_on_board_dict.keys():
-            if self.board[fruit_pos] > 2:
-                self.board[fruit_pos] = 0
-
-        if self.turns_till_fruit_gone >= 0:
-            self.fruits_on_board_dict = fruits_on_board_dict
+        if self.turns_till_fruit_gone == 0 or self.turns_till_fruit_gone == -1:
             for fruit_pos in self.fruits_on_board_dict.keys():
-                if self.board[fruit_pos] == 0:
-                    self.board[fruit_pos] = fruits_on_board_dict[fruit_pos]
+                if self.board[fruit_pos] > 2:
+                    self.board[fruit_pos] = 0
+
+        self.fruits_on_board_dict = fruits_on_board_dict
 
 
     ########## helper functions in class ##########
