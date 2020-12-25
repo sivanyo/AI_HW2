@@ -19,10 +19,8 @@ class Player(AbstractPlayer):
         self.turns_till_fruit_gone = 0
         self.max_turns = 0
 
-        self.game_time = game_time
-        self.time_for_search_8 = 0  # more fields for this player
+        self.game_time = game_time  # more fields for this player
         self.time_for_curr_iter = 0
-        # self.my_turns = 0  # TODO useless
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -46,15 +44,24 @@ class Player(AbstractPlayer):
                 elif num > 2:
                     self.fruits_on_board_dict[(r, c)] = num  # need to do this manually only for this player
 
-        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)
+        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)  # TODO! need to save time for last iter weach is bigger than min time possibole
 
-        state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0, 0], self.penalty_score,
+        min_iter_time = time.time()
+        state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0,0], self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict)
-
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
-        cur_time = time.time()
-        search_algo.search(state, 8, True)  # TODO 8 (???)
-        self.time_for_search_8 = time.time() - cur_time
+        search_algo.search(state, 1, True)
+
+        min_iter_time = (time.time() - min_iter_time) * 0.9999  # TODO right now i dont do anything with this... need your help
+
+        tmp = self.time_for_curr_iter
+        tmp_depth = self.max_turns
+        while tmp_depth and tmp_depth > min_iter_time:
+            tmp = tmp/3
+            tmp_depth -= 1
+
+        if tmp_depth < min_iter_time:  # TODO right now i dont do anything with this... need your help
+            print("need to make plan B for time sharing GBA...")
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -64,24 +71,30 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing Global AB move")  # TODO printing for test. del before sub
+        start_time = time.time()
+        allowed_time = min(self.time_for_curr_iter, time_limit)  # TODO need to speak about it
+
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict, time.time() + allowed_time - .015)  # TODO time limit -.015
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
+        depth = 1
+        best_move = None, None
 
-        depth = 9  # min depth. already calc depth is 8 (9-1)
-        allowed_time = min(self.time_for_curr_iter, time_limit)
-        tmp_time = self.time_for_search_8
-        if allowed_time > 1.1:
-            while tmp_time < allowed_time - 0.001:
-                depth += 1
-                tmp_time *= 3
+        while depth <= self.max_turns:
+            try:
+                best_move = search_algo.search(state, depth, True)
+            except TimeoutError:
+                break
+            depth += 1
 
-        best_move = search_algo.search(state, depth - 1, True)  # TODO depth (???)
         if best_move[1] is None:
+            print("something went wrong,.. im out... probably not enough time for at least depth=1")  # TODO printing for test. del before sub
             exit(0)
 
-        print("i search to depth: ", depth - 1)
-        self.time_for_curr_iter = (self.time_for_curr_iter/3) + allowed_time - (tmp_time/3)  # saving extras (leftover)
+        print("depth is : ", depth - 1)   # TODO printing for test. del before sub
+        # self.time_for_curr_iter = (self.time_for_curr_iter/3)
+        self.time_for_curr_iter = (self.time_for_curr_iter/3) + self.time_for_curr_iter - (time.time()-start_time)  # TODO Testing
+        print("current iter took: ", time.time()-start_time)
         print("next iter will take: ", self.time_for_curr_iter)  # TODO printing for test
 
         print("Global AB choose the move: ", best_move)  # TODO printing for test. del before sub
@@ -90,7 +103,6 @@ class Player(AbstractPlayer):
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
         self.board[self.pos] = 1
         self.turns_till_fruit_gone -= 1
-        # self.my_turns += 1  # special field for this player  # TODO useless
         return best_move[1]
 
     def set_rival_move(self, pos):

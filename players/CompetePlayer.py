@@ -45,6 +45,7 @@ class Player(AbstractPlayer):
                 elif num == 2:
                     self.rival_pos = (r, c)
 
+        self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)  # TODO lets take more risk!
 
     def make_move(self, time_limit, players_score):
         """Make move with this Player.
@@ -55,43 +56,29 @@ class Player(AbstractPlayer):
         """
         print("start computing COMPETITION-PLAYER move")  # TODO printing for test. del before sub
         start_time = time.time()
+        allowed_time = min(self.time_for_curr_iter, time_limit)  # TODO need to speak about it
+
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict)
-        search_algo = SearchAlgos.AlphaBeta(competittion_utility, utils.succ, utils.perform_move, utils.goal)
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict,
+                            time.time() + allowed_time - .015)  # TODO time limit -.01
+        search_algo = SearchAlgos.AlphaBeta(competittion_utility2, utils.succ, utils.perform_move, utils.goal)
+        depth = 1
+        best_move = None, None
 
-        best_move = None
-        first_time_iter = 0
-        if self.first_run_flag:
-            self.first_run_flag = False
-            self.time_for_curr_iter = (-2 / 3) * self.game_time / (((1 / 3) ** self.max_turns) - 1)
-            search_algo = SearchAlgos.AlphaBeta(competittion_utility, utils.succ, utils.perform_move, utils.goal)
-            cur_time = time.time()
-            best_move = search_algo.search(state, 8, True)
-            self.time_for_search_8 = time.time() - cur_time
-            first_time_iter = self.time_for_search_8
-
-        risk_factor_mul = 2.1712*(1+self.max_turns-self.my_turns)/self.max_turns  # TODO risky1
-        risk_factor_add_depth = 2  # TODO risky2
-
-        depth = 10  # min depth. already calc depth is 15 (9-1)
-        allowed_time = min(self.time_for_curr_iter, time_limit) - first_time_iter
-        tmp_time = self.time_for_search_8
-        if allowed_time > 1.1:
-            while tmp_time < allowed_time - 0.001:
-                depth += 1
-                tmp_time *= risk_factor_mul
-            print("i search to depth: ", depth - 1 + risk_factor_add_depth)
-            best_move = search_algo.search(state, depth - 1 + risk_factor_add_depth, True)
-        elif best_move is None:
-            min_depth_op = 10*(1+self.max_turns+self.my_turns)/self.max_turns  # different from prev formula
-            print("i search to depth: ", min_depth_op)
-            best_move = search_algo.search(state, min_depth_op, True)
+        while depth <= self.max_turns:
+            try:
+                best_move = search_algo.search(state, depth, True)
+            except TimeoutError:
+                break
+            depth += 1
 
         if best_move[1] is None:
-            print("ops... i am out")
+            print("something went wrong,.. im out... probably not enough time for at least depth=1")  # TODO printing for test. del before sub
             exit(0)
 
-        self.time_for_curr_iter = (self.time_for_curr_iter/risk_factor_mul) + allowed_time - (time.time() - start_time)
+        print("depth is : ", depth - 1)  # TODO printing for test. del before sub
+        self.time_for_curr_iter = (self.time_for_curr_iter / 3)  # TODO Testing
+        print("current iter took: ", time.time() - start_time)
         print("next iter will take: ", self.time_for_curr_iter)  # TODO printing for test
 
         print("COMPETITION-PLAYER choose the move: ", best_move)  # TODO printing for test. del before sub
@@ -165,3 +152,49 @@ def competittion_utility(state, score_or_heuristic):
         penalty_score/2
 
     return val
+
+
+def competittion_utility2(state, score_or_heuristic):
+    if score_or_heuristic:
+        if state.scores[0] - state.scores[1] > 0:
+            return (state.scores[0] - state.scores[1]) * 1000
+        return state.scores[0] - state.scores[1]
+
+    val = (state.scores[0] - state.scores[1])
+    if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:
+        return (state.scores[0] - state.scores[1] + state.penalty_score) * 1000
+
+    potential_fruit_val = 0
+    if state.turns_till_fruit_gone > 0:
+        for fruit_pos in state.fruits_dict.keys():
+            curr_fruit_dist = abs(fruit_pos[0] - state.my_pos[0]) + abs(fruit_pos[1] - state.my_pos[1])  # max player
+            if curr_fruit_dist <= state.turns_till_fruit_gone:
+                potential_fruit_val += state.fruits_dict[fruit_pos] / curr_fruit_dist
+
+            curr_fruit_dist = abs(fruit_pos[0] - state.rival_pos[0]) + abs(fruit_pos[1] - state.rival_pos[1])  # min pl
+            if curr_fruit_dist <= state.turns_till_fruit_gone:
+                potential_fruit_val -= state.fruits_dict[fruit_pos] / curr_fruit_dist
+
+    val += potential_fruit_val/2
+
+    tmp1 = calc_left_moves(copy.copy(state.board), state.my_pos)
+    tmp2 = calc_left_moves(copy.copy(state.board), state.rival_pos)
+    if tmp1 > tmp2:
+        val += state.penalty_score/2
+    elif tmp1 < tmp2:
+        val -= state.penalty_score/2
+
+    # val += (state.number_pf_legal_moves(state.my_pos) - state.number_pf_legal_moves(state.rival_pos))*state.\
+    #     penalty_score/2
+
+    return val
+
+def calc_left_moves(board, pos):
+    sum = 1
+    for op_move in utils.get_directions():
+        i = pos[0] + op_move[0]
+        j = pos[1] + op_move[1]
+        if 0 <= i < len(board) and 0 <= j < len(board[0]) and (board[i][j] not in [-1, 1, 2]):
+            board[i][j] = -1
+            sum += calc_left_moves(board, (i, j))
+    return sum

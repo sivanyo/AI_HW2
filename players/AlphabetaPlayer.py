@@ -47,9 +47,8 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing alpha-beta move")  # TODO printing for test. del before sub
-        start = time.time()
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict, time.time()+time_limit-.01)  # TODO time limit -.01
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict, time.time()+time_limit-.015)  # TODO time limit -.015
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
         best_move = None, None
