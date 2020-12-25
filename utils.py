@@ -2,6 +2,7 @@ import operator
 import numpy as np
 import os
 import copy
+import time
 
 # TODO: edit the alpha and beta initialization values for AlphaBeta algorithm.
 # instead of 'None', write the real initialization value, learned in class.
@@ -53,7 +54,8 @@ def get_board_from_csv(board_file_name):
 
 
 class State:
-    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, fruits_dict):
+    def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, fruits_dict,
+                 max_time=None):  # TODO max_time=None
         self.board = board
         self.my_pos = my_pos
         self.rival_pos = rival_pos
@@ -62,6 +64,7 @@ class State:
         self.penalty_score = penalty_score
         self.turns_till_fruit_gone = turns_till_fruit_gone
         self.fruits_dict = fruits_dict
+        self.max_time = max_time  # TODO
 
     def have_valid_move_check(self, maximizing_player):
         for op_move in self.directions:
@@ -86,6 +89,9 @@ class State:
 
 
 def goal(state, maximizing_player):
+    if state.max_time is not None and state.max_time <= time.time():
+        raise TimeoutError  # TODO maybe change exp type
+
     if not state.have_valid_move_check(maximizing_player):
         if state.have_valid_move_check(not maximizing_player):
             state.scores[not maximizing_player] -= state.penalty_score

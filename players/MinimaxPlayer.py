@@ -8,7 +8,6 @@ import utils
 
 # TODO: you can import more modules, if needed
 import time
-from fractions import Fraction
 
 
 class Player(AbstractPlayer):
@@ -49,20 +48,21 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing minimax move")  # TODO printing for test. del before sub
-        start = time.time()
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                      self.turns_till_fruit_gone, self.fruits_on_board_dict)
+                      self.turns_till_fruit_gone, self.fruits_on_board_dict, time.time()+time_limit-.01)  # TODO time limit -.01
         search_algo = SearchAlgos.MiniMax(utils.utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
-        iter_time = 0
         best_move = None, None
-        while time.time() + (3 * iter_time) - start < time_limit-.025 and depth <= self.max_turns:
-            cur_time = time.time()  # the time gap when the curr iter will end, is now-start + curr_iter_time
-            best_move = search_algo.search(state, depth, True)
-            iter_time = time.time() - cur_time
+
+        while depth <= self.max_turns:
+            try:
+                best_move = search_algo.search(state, depth, True)
+            except TimeoutError:
+                break
             depth += 1
+
         if best_move[1] is None:
-            # print("im out")
+            print("something went wrong,.. im out")  # TODO printing for test. del before sub
             exit(0)
         print("depth is : ", depth-1)
         print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
