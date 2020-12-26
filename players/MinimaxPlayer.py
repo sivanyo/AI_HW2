@@ -83,6 +83,7 @@ class Player(AbstractPlayer):
         self.board[pos] = 2
         self.rival_pos = pos
         self.turns_till_fruit_gone -= 1
+        self.max_turns -= 1
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
