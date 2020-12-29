@@ -16,6 +16,7 @@ class Player(AbstractPlayer):
         self.rival_pos = None
         self.fruits_on_board_dict = {}
         self.turns_till_fruit_gone = 0
+        self.first_player = -1
         self.max_turns = 0
 
     def set_game_params(self, board):
@@ -46,8 +47,10 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
         print("start computing Light alpha-beta move")  # TODO printing for test. del before sub
+        if self.first_player == -1:
+            self.first_player = True
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict, self.first_player)
         search_algo = SearchAlgos.AlphaBeta(light_utility, utils.succ, utils.perform_move, utils.goal)
         heavy_player_depth = 3
         i = 3
@@ -72,6 +75,8 @@ class Player(AbstractPlayer):
         self.board[pos] = 2
         self.rival_pos = pos
         self.turns_till_fruit_gone -= 1
+        if self.first_player == -1:
+            self.first_player = False
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).

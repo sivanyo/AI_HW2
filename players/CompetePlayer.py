@@ -16,6 +16,7 @@ class Player(AbstractPlayer):
         self.rival_pos = None
         self.fruits_on_board_dict = {}
         self.turns_till_fruit_gone = 0
+        self.first_player = -1
         self.max_turns = 0
 
         self.game_time = game_time  # more fields for this player
@@ -52,7 +53,7 @@ class Player(AbstractPlayer):
 
         min_iter_time = time.time()
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0,0], self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict)
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict, True)
         search_algo = SearchAlgos.AlphaBeta(comp_utility, utils.succ, utils.perform_move, utils.goal)
         search_algo.search(state, 2, True)  # TODO 2
 
@@ -99,9 +100,12 @@ class Player(AbstractPlayer):
         start_time = time.time()
         allowed_time = min(self.time_for_curr_iter, time_limit)
 
+        if self.first_player == -1:
+            self.first_player = True
+
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
-                            self.turns_till_fruit_gone, self.fruits_on_board_dict, time.time() + allowed_time -
-                            self.extra_safe_time)
+                            self.turns_till_fruit_gone, self.fruits_on_board_dict, self.first_player, time.time() +
+                            allowed_time - self.extra_safe_time)
         search_algo = SearchAlgos.AlphaBeta(comp_utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
         best_move = None, None
@@ -146,6 +150,8 @@ class Player(AbstractPlayer):
         self.rival_pos = pos
         self.turns_till_fruit_gone -= 1
         self.max_turns -= 1
+        if self.first_player == -1:
+            self.first_player = False
 
     def update_fruits(self, fruits_on_board_dict):
         """Update your info on the current fruits on board (if needed).
@@ -178,11 +184,13 @@ def comp_utility(state, score_or_heuristic):
         return state.scores[0] - state.scores[1]
 
     val = (state.scores[0] - state.scores[1])
-    if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:
-        return (state.scores[0] - state.scores[1] + state.penalty_score) * 1000
-
-    val += (state.number_pf_legal_moves(state.my_pos) - state.number_pf_legal_moves(state.rival_pos)) * state. \
-        penalty_score / 10
+    # if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:  # TODO why
+    #     return (state.scores[0] - state.scores[1] + state.penalty_score) * 1000
+    if state.number_pf_legal_moves(state.rival_pos) == 0:
+        val += state.penalty_score
+    else:
+        val += (state.number_pf_legal_moves(state.my_pos) - state.number_pf_legal_moves(state.rival_pos)) * state. \
+            penalty_score / 10
 
     tmp1 = calc_left_moves(copy.copy(state.board), state.my_pos)
     tmp2 = calc_left_moves(copy.copy(state.board), state.rival_pos)
