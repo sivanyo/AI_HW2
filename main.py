@@ -19,9 +19,9 @@ if __name__ == "__main__":
     parser.add_argument('-board', default='default_board.csv', type=str,
                         help='Name of board file (.csv).')
 
-    parser.add_argument('-move_time', default=1, type=float,
+    parser.add_argument('-move_time', default=20, type=float,
                         help='Time (sec) for each turn.')  # TODO if we want to check time of search
-    parser.add_argument('-game_time', default=2000, type=float,
+    parser.add_argument('-game_time', default=20, type=float,
                         help='Global game time (sec) for each player.')  # TODO game time (original is 2000)
     parser.add_argument('-penalty_score', default=300, type=float,
                         help='Penalty points for a player when it cant move or its time ends.')
