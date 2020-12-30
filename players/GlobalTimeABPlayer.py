@@ -2,7 +2,6 @@
 MiniMax Player with AlphaBeta pruning and global time
 """
 from players.AbstractPlayer import AbstractPlayer
-# TODO: you can import more modules, if needed
 import SearchAlgos
 import copy
 import utils
@@ -58,16 +57,17 @@ class Player(AbstractPlayer):
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         search_algo.search(state, 2, True)  # TODO 2
 
-        min_iter_time = (time.time() - min_iter_time) * 1.1
+        min_iter_time = (time.time() - min_iter_time) * 1.2
+        # print(min_iter_time)  # TODO
 
         self.my_turn = int((1+self.max_turns)/2)
-        tmp = self.time_for_curr_iter
+        tmp_time = self.time_for_curr_iter
         tmp_depth = self.my_turn
-        while tmp_depth and tmp_depth > min_iter_time:  # check every iter is possible for at least depth=1
-            tmp = tmp / self.risk_factor1
+        while tmp_depth and tmp_time > min_iter_time:  # check every iter is possible for at least depth=1
+            tmp_time = tmp_time / self.risk_factor1
             tmp_depth -= 1
 
-        if tmp_depth < min_iter_time:  # not every iter is possible for at least depth=1. plan B for time sharing:
+        if tmp_time < min_iter_time:  # not every iter is possible for at least depth=1. plan B for time sharing:
             avg_time = self.game_time/self.my_turn
             self.time_for_each_iter = {}
             index_left = self.my_turn
@@ -78,7 +78,7 @@ class Player(AbstractPlayer):
                 self.time_for_each_iter[index_right] = min_iter_time + self.extra_safe_time
                 index_right += 1
                 index_left -= 1
-                min_iter_time *= self.risk_factor2  # TODO lets be brave and put 2.171 instead
+                min_iter_time *= self.risk_factor2
                 exchange_tmp = avg_time - (min_iter_time + self.extra_safe_time)
 
             while index_left >= index_right:
@@ -97,7 +97,7 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing Global AB move")  # TODO printing for test. del before sub
+        # print("start computing Global AB move")  # printing for self test
         start_time = time.time()
         allowed_time = min(self.time_for_curr_iter, time_limit)
 
@@ -119,19 +119,19 @@ class Player(AbstractPlayer):
             depth += 1
 
         if best_move[1] is None:
-            print("something went wrong,.. im out... probably not enough time for at least depth=1")  # TODO printing for test. del before sub
+            # print("something went wrong,.. im out... probably not enough time for at least depth=1")  # printing for self test
             exit(0)
 
-        print("depth is : ", depth - 1)   # TODO printing for test. del before sub
+        # print("depth is : ", depth - 1)   # printing for self test
         if self.time_for_each_iter is not None:
-            print("my turn is: ", self.my_turn)   # TODO printing for test. del before sub
+            print("my turn is: ", self.my_turn)   # printing for self test
             self.time_for_curr_iter += self.time_for_each_iter[self.my_turn] - (time.time()-start_time)
             self.my_turn -= 1
         else:
             self.time_for_curr_iter += (self.time_for_curr_iter/self.risk_factor1) - (time.time()-start_time)
-        print("current iter took: ", time.time()-start_time)   # TODO printing for test. del before sub
-        print("next iter will take: ", self.time_for_curr_iter)  # TODO printing for test
-        print("Global AB choose the move: ", best_move)  # TODO printing for test. del before sub
+        # print("current iter took: ", time.time()-start_time)   # printing for self test
+        # print("next iter will take: ", self.time_for_curr_iter)
+        # print("Global AB choose the move: ", best_move)
         self.max_turns -= 1
         self.board[self.pos] = -1
         tmp1 = best_move[1]

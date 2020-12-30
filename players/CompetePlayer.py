@@ -2,7 +2,6 @@
 Player for the competition
 """
 from players.AbstractPlayer import AbstractPlayer
-#TODO: you can import more modules, if needed
 import SearchAlgos
 import copy
 import utils
@@ -23,7 +22,7 @@ class Player(AbstractPlayer):
         self.time_for_curr_iter = 0
         self.time_for_each_iter = None
         self.my_turn = None
-        self.extra_safe_time = 0.012
+        self.extra_safe_time = 0.015
         self.risk_factor1 = 2.2
         self.risk_factor2 = 2.1712
 
@@ -55,7 +54,7 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0,0], self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict, True)
         search_algo = SearchAlgos.AlphaBeta(comp_utility, utils.succ, utils.perform_move, utils.goal)
-        search_algo.search(state, 2, True)  # TODO 2
+        search_algo.search(state, 2, True)  # TODO 2 as depth
 
         min_iter_time = (time.time() - min_iter_time) * 1.1
 
@@ -77,7 +76,7 @@ class Player(AbstractPlayer):
                 self.time_for_each_iter[index_right] = min_iter_time + self.extra_safe_time
                 index_right += 1
                 index_left -= 1
-                min_iter_time *= self.risk_factor2  # TODO lets be brave and put 2.171 instead
+                min_iter_time *= self.risk_factor2
                 exchange_tmp = avg_time - (min_iter_time + self.extra_safe_time)
 
             while index_left >= index_right:
@@ -96,7 +95,7 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing CompetePlayer move")  # TODO printing for test. del before sub
+        # print("start computing CompetePlayer move")  # printing for self test
         start_time = time.time()
         allowed_time = min(self.time_for_curr_iter, time_limit)
 
@@ -118,19 +117,19 @@ class Player(AbstractPlayer):
             depth += 1
 
         if best_move[1] is None:
-            print("something went wrong,.. im out... probably not enough time for at least depth=1")  # TODO printing for test. del before sub
+            # print("something went wrong,.. im out... probably not enough time for at least depth=1")  # printing for self test
             exit(0)
 
-        print("depth is : ", depth - 1)   # TODO printing for test. del before sub
+        # print("depth is : ", depth - 1)   # printing for self test
         if self.time_for_each_iter is not None:
-            print("my turn is: ", self.my_turn)   # TODO printing for test. del before sub
+            # print("my turn is: ", self.my_turn)   # printing for self test
             self.time_for_curr_iter += self.time_for_each_iter[self.my_turn] - (time.time()-start_time)
             self.my_turn -= 1
         else:
             self.time_for_curr_iter += (self.time_for_curr_iter/self.risk_factor1) - (time.time()-start_time)
-        print("current iter took: ", time.time()-start_time)   # TODO printing for test. del before sub
-        print("next iter will take: ", self.time_for_curr_iter)  # TODO printing for test
-        print("CompetePlayer choose the move: ", best_move)  # TODO printing for test. del before sub
+        # print("current iter took: ", time.time()-start_time)   # printing for self test
+        # print("next iter will take: ", self.time_for_curr_iter)
+        # print("CompetePlayer choose the move: ", best_move)
         self.max_turns -= 1
         self.board[self.pos] = -1
         tmp1 = best_move[1]

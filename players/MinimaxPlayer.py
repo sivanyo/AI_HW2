@@ -5,8 +5,6 @@ from players.AbstractPlayer import AbstractPlayer
 import SearchAlgos
 import copy
 import utils
-
-# TODO: you can import more modules, if needed
 import time
 
 
@@ -48,7 +46,7 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing minimax move")  # TODO printing for test. del before sub
+        # print("start computing minimax move")  # printing for self test
         if self.first_player == -1:
             self.first_player = True
 
@@ -67,10 +65,10 @@ class Player(AbstractPlayer):
             depth += 1
 
         if best_move[1] is None:
-            print("something went wrong,.. im out")  # TODO printing for test. del before sub
+            # print("something went wrong,.. im out")  # printing for self test
             exit(0)
-        print("depth is : ", depth-1)
-        print("minmax choose the move: ", best_move)  # TODO printing for test. del before sub
+        # print("depth is : ", depth-1)  # printing for self test
+        # print("minmax choose the move: ", best_move)  # printing for self test
         self.board[self.pos] = -1
         tmp1 = best_move[1]
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])

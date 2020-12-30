@@ -2,7 +2,6 @@
 MiniMax Player with AlphaBeta pruning with heavy heuristic
 """
 from players.AbstractPlayer import AbstractPlayer
-# TODO: you can import more modules, if needed
 import SearchAlgos
 import copy
 import utils
@@ -46,7 +45,7 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement, chosen from self.directions
         """
-        print("start computing Heavy alpha-beta move")  # TODO printing for test. del before sub
+        # print("start computing Heavy alpha-beta move")  # printing for self test
         if self.first_player == -1:
             self.first_player = True
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
@@ -55,7 +54,7 @@ class Player(AbstractPlayer):
         best_move = search_algo.search(state, 3, True)  # always with max depth=3 (or 2 in other test)
         if best_move[1] is None:
             exit(0)
-        print("Heavy alpha-beta choose the move: ", best_move)  # TODO printing for test. del before sub
+        # print("Heavy alpha-beta choose the move: ", best_move)  # printing for self test
         self.board[self.pos] = -1
         tmp1 = best_move[1]
         self.pos = (self.pos[0] + tmp1[0], self.pos[1] + tmp1[1])
