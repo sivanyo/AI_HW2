@@ -56,16 +56,20 @@ class Player(AbstractPlayer):
         search_algo = SearchAlgos.AlphaBeta(comp_utility, utils.succ, utils.perform_move, utils.goal)
         search_algo.search(state, 2, True)  # TODO 2 as depth
 
-        min_iter_time = (time.time() - min_iter_time) * 1.1
+        min_iter_time = (time.time() - min_iter_time) * 1.25
+
+        if min_iter_time == 0:  # TODO fixing resolution problem
+            min_iter_time = 0.0022
+            # TODO maybe for competion we just do that ^ instead
 
         self.my_turn = int((1+self.max_turns)/2)
-        tmp = self.time_for_curr_iter
+        tmp_time = self.time_for_curr_iter
         tmp_depth = self.my_turn
-        while tmp_depth and tmp_depth > min_iter_time:  # check every iter is possible for at least depth=1
-            tmp = tmp / self.risk_factor1
+        while tmp_depth and tmp_time > min_iter_time:  # check every iter is possible for at least depth=1
+            tmp_time = tmp_time / self.risk_factor1
             tmp_depth -= 1
 
-        if tmp_depth < min_iter_time:  # not every iter is possible for at least depth=1. plan B for time sharing:
+        if tmp_time < min_iter_time:  # not every iter is possible for at least depth=1. plan B for time sharing:
             avg_time = self.game_time/self.my_turn
             self.time_for_each_iter = {}
             index_left = self.my_turn

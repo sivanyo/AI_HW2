@@ -57,8 +57,10 @@ class Player(AbstractPlayer):
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
         search_algo.search(state, 2, True)  # TODO 2
 
-        min_iter_time = (time.time() - min_iter_time) * 1.2
-        # print(min_iter_time)  # TODO
+        min_iter_time = (time.time() - min_iter_time) * 1.25
+
+        if min_iter_time == 0:  # TODO fixing resolution problem
+            min_iter_time = 0.0022
 
         self.my_turn = int((1+self.max_turns)/2)
         tmp_time = self.time_for_curr_iter
@@ -124,7 +126,7 @@ class Player(AbstractPlayer):
 
         # print("depth is : ", depth - 1)   # printing for self test
         if self.time_for_each_iter is not None:
-            print("my turn is: ", self.my_turn)   # printing for self test
+            # print("my turn is: ", self.my_turn)   # printing for self test
             self.time_for_curr_iter += self.time_for_each_iter[self.my_turn] - (time.time()-start_time)
             self.my_turn -= 1
         else:
