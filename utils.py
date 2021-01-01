@@ -7,7 +7,7 @@ import time
 # TODO: edit the alpha and beta initialization values for AlphaBeta algorithm.
 # instead of 'None', write the real initialization value, learned in class.
 # hint: you can use np.inf
-ALPHA_VALUE_INIT = float('-inf')  # TODO why np.inf and not like this? they gave as code with float('inf')
+ALPHA_VALUE_INIT = float('-inf')
 BETA_VALUE_INIT = float('inf')
 
 
@@ -55,7 +55,7 @@ def get_board_from_csv(board_file_name):
 
 class State:
     def __init__(self, board, my_pos, rival_pos, scores, penalty_score, turns_till_fruit_gone, fruits_dict,
-                 first_player, max_time=None):  # TODO max_time=None
+                 first_player, max_time=None):
         self.board = board
         self.my_pos = my_pos
         self.rival_pos = rival_pos
@@ -66,7 +66,7 @@ class State:
         self.fruits_dict = fruits_dict
 
         self.first_player = first_player  # True if player is the first to player, and false if rival is the first one
-        self.max_time = max_time  # TODO
+        self.max_time = max_time
 
     def have_valid_move_check(self, maximizing_player):
         for op_move in self.directions:
@@ -92,7 +92,7 @@ class State:
 
 def goal(state, maximizing_player):
     if state.max_time is not None and state.max_time <= time.time():
-        raise TimeoutError  # TODO maybe change exp type
+        raise TimeoutError
 
     if not state.have_valid_move_check(maximizing_player):
         if state.have_valid_move_check(not maximizing_player):
@@ -115,9 +115,6 @@ def succ(state, maximizing_player):
 
         if 0 <= i < len(state.board) and 0 <= j < len(state.board[0]) and (state.board[i][j] not in [-1, 1, 2]):
             op_moves.append(op_move)
-
-    # if len(op_moves) == 0 and state.have_valid_move_check(not maximizing_player):  # TODO useless?
-    #     state.scores[not maximizing_player] -= state.penalty_score
 
     return op_moves
 
@@ -151,7 +148,6 @@ def utility(state, score_or_heuristic):
         return state.scores[0] - state.scores[1]
 
     val = (state.scores[0] - state.scores[1])
-    # if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:  # TODO why?
     if state.number_pf_legal_moves(state.rival_pos) == 0:
         val += state.penalty_score
 

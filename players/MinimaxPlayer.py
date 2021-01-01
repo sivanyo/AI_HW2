@@ -52,7 +52,7 @@ class Player(AbstractPlayer):
 
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, players_score, self.penalty_score,
                       self.turns_till_fruit_gone, self.fruits_on_board_dict, self.first_player, time.time()+time_limit -
-                            .015)  # TODO (time limit -.015)
+                            .015)
         search_algo = SearchAlgos.MiniMax(utils.utility, utils.succ, utils.perform_move, utils.goal)
         depth = 1
         best_move = None, None

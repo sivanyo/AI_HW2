@@ -54,13 +54,12 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0,0], self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict, True)
         search_algo = SearchAlgos.AlphaBeta(comp_utility, utils.succ, utils.perform_move, utils.goal)
-        search_algo.search(state, 2, True)  # TODO 2 as depth
+        search_algo.search(state, 2, True)
 
         min_iter_time = (time.time() - min_iter_time) * 1.25
 
-        if min_iter_time == 0:  # TODO fixing resolution problem
+        if min_iter_time == 0:
             min_iter_time = 0.0022
-            # TODO maybe for competion we just do that ^ instead
 
         self.my_turn = int((1+self.max_turns)/2)
         tmp_time = self.time_for_curr_iter
@@ -187,8 +186,6 @@ def comp_utility(state, score_or_heuristic):
         return state.scores[0] - state.scores[1]
 
     val = (state.scores[0] - state.scores[1])
-    # if state.scores[0] - state.penalty_score > state.scores[1] and state.number_pf_legal_moves(state.rival_pos) == 0:  # TODO why
-    #     return (state.scores[0] - state.scores[1] + state.penalty_score) * 1000
     if state.number_pf_legal_moves(state.rival_pos) == 0:
         val += state.penalty_score
     else:

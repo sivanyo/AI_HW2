@@ -55,11 +55,11 @@ class Player(AbstractPlayer):
         state = utils.State(copy.deepcopy(self.board), self.pos, self.rival_pos, [0,0], self.penalty_score,
                             self.turns_till_fruit_gone, self.fruits_on_board_dict, True)
         search_algo = SearchAlgos.AlphaBeta(utils.utility, utils.succ, utils.perform_move, utils.goal)
-        search_algo.search(state, 2, True)  # TODO 2
+        search_algo.search(state, 2, True)
 
         min_iter_time = (time.time() - min_iter_time) * 1.25
 
-        if min_iter_time == 0:  # TODO fixing resolution problem
+        if min_iter_time == 0:
             min_iter_time = 0.0022
 
         self.my_turn = int((1+self.max_turns)/2)
